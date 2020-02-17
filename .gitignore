@@ -1,0 +1,5 @@
+node_modules
+
+# homebridge home directory
+homebridge-home/*
+!homebridge-home/config.template.json

@@ -1,0 +1,42 @@
+{
+    "name": "homebridge-daikin-airbase",
+    "version": "1.0.0",
+    "description": "A Homebridge plugin providing support for the Daikin Airbase.",
+    "main": "index.js",
+    "scripts": {
+        "start": "homebridge -D -U ./homebridge-home -P .",
+        "debug": "ndb npm start",
+        "lint": "npx prettier '**/*.{js,json,md,yml}' --check && eslint ."
+    },
+    "keywords": [
+        "homebridge-plugin",
+        "homebridge",
+        "daikin",
+        "airbase",
+        "skyfi"
+    ],
+    "author": "Matthieu Di Berardino",
+    "license": "Apache 2",
+    "devDependencies": {
+        "eslint": "^6.1.0",
+        "homebridge": "^0.4.50",
+        "ndb": "^1.1.5",
+        "prettier": "^1.19.1"
+    },
+    "engines": {
+        "node": ">=11.0.0",
+        "homebridge": ">=0.4.0"
+    },
+    "dependencies": {
+        "lodash": "^4.17.15",
+        "node-fetch": "^2.6.0"
+    },
+    "homepage": "https://github.com/yenoiwesa/homebridge-daikin-airbase#readme",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/yenoiwesa/homebridge-daikin-airbase.git"
+    },
+    "bugs": {
+        "url": "http://github.com/yenoiwesa/homebridge-daikin-airbase/issues"
+    }
+}
