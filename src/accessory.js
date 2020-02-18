@@ -18,19 +18,17 @@ class Accessory {
         );
         informationService.setCharacteristic(
             Characteristic.SerialNumber,
-            this.aircon.info.name
+            this.aircon.info.ssid
         );
         informationService.setCharacteristic(
             Characteristic.FirmwareRevision,
-            String(this.aircon.info.version)
-                .split('_')
-                .join('.')
+            this.aircon.info.version
         );
 
         this.homekitAccessory = {
             name: this.name,
             displayName: this.name,
-            uuid_base: UUIDGen.generate(this.aircon.info.name),
+            uuid_base: UUIDGen.generate(this.aircon.info.ssid),
             services: [informationService],
             getServices: () => this.homekitAccessory.services,
         };
@@ -44,7 +42,37 @@ class Accessory {
     }
 
     get name() {
-        throw 'must be overridden';
+        return this.aircon.info.name;
+    }
+
+    async getHomekitState(state, getStateFn, callback) {
+        this.log.debug(`Get ${state}`);
+
+        try {
+            const value = await getStateFn();
+
+            this.log.info(`Get ${state} success: ${value}`);
+            callback(null, value);
+        } catch (error) {
+            this.log.error(`Could not fetch ${state}`, error);
+
+            callback(error);
+        }
+    }
+
+    async setHomekitState(state, value, setStateFn, callback) {
+        this.log.debug(`Set ${state} with value: ${value}`);
+
+        try {
+            await setStateFn(value);
+
+            this.log.info(`Set ${state} success: ${value}`);
+            callback();
+        } catch (error) {
+            this.log.error(`Could not set ${state}`, error);
+
+            callback(error);
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-function cachePromise(promiseCallback, cacheDuration) {
+const cachePromise = (promiseCallback, cacheDuration) => {
     let promise;
 
     const reset = () => {
@@ -25,6 +25,6 @@ function cachePromise(promiseCallback, cacheDuration) {
     };
 
     return { exec, reset };
-}
+};
 
 module.exports = { cachePromise };

@@ -1,10 +1,10 @@
 <p align="center">
-    <img src="documentation/logo.png" width="100" alt="Daikin Airbase logo">
+    <img src="documentation/logo.png" width="200" alt="Daikin Airbase logo">
 </p>
 
 # Homebridge Daikin Airbase
 
-A Homebridge plugin providing support for the **Daikin Airbase** WiFi module.
+A Homebridge plugin providing support for the **Daikin Airbase** WiFi module (BRP15B61).
 
 # Requirements
 
@@ -61,8 +61,6 @@ The platform can be configured with the following parameters:
 # Limitation
 
 This plugin does not support setting the aircon into **Dry** or **Fan** mode as these are not supported natively by Homekit (they cannot be mapped to a control in the Home app).
-
-It also does allow changing the fan speed, for the same reason.
 
 # Contribute
 

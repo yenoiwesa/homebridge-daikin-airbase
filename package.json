@@ -13,10 +13,11 @@
         "homebridge",
         "daikin",
         "airbase",
-        "skyfi"
+        "skyfi",
+        "BRP15B61"
     ],
     "author": "Matthieu Di Berardino",
-    "license": "Apache 2",
+    "license": "Apache-2.0",
     "devDependencies": {
         "eslint": "^6.1.0",
         "homebridge": "^0.4.50",
@@ -28,6 +29,7 @@
         "homebridge": ">=0.4.0"
     },
     "dependencies": {
+        "debounce-promise": "^3.1.2",
         "lodash": "^4.17.15",
         "node-fetch": "^2.6.0"
     },
