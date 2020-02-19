@@ -1,10 +1,9 @@
+const { get } = require('lodash');
 const Accessory = require('./accessory');
 const DaikinAircon = require('./daikin-controller');
 
 let Service;
 let Characteristic;
-
-const UPDATE_DELAY = 1000;
 
 class HeaterCooler extends Accessory {
     constructor({ homebridge, log, aircon }) {
@@ -202,66 +201,87 @@ class HeaterCooler extends Accessory {
         });
     }
 
+    async calculateHeatingCoolingState(
+        mode,
+        targetTemperature,
+        modeTargetTemperature
+    ) {
+        let currentHeaterCoolerState;
+
+        const { indoorTemperature } = await this.aircon.getSensorInfo();
+
+        const setHeating = () => {
+            const heatingTarget = get(
+                modeTargetTemperature,
+                DaikinAircon.Mode.HEAT,
+                targetTemperature
+            );
+
+            currentHeaterCoolerState =
+                indoorTemperature < heatingTarget
+                    ? Characteristic.CurrentHeaterCoolerState.HEATING
+                    : Characteristic.CurrentHeaterCoolerState.IDLE;
+        };
+
+        const setCooling = () => {
+            const coolingTarget = get(
+                modeTargetTemperature,
+                DaikinAircon.Mode.COOL,
+                targetTemperature
+            );
+
+            currentHeaterCoolerState =
+                indoorTemperature > coolingTarget
+                    ? Characteristic.CurrentHeaterCoolerState.COOLING
+                    : Characteristic.CurrentHeaterCoolerState.IDLE;
+        };
+
+        switch (mode) {
+            case DaikinAircon.Mode.HEAT:
+                setHeating();
+                break;
+            case DaikinAircon.Mode.COOL:
+                setCooling();
+                break;
+            case DaikinAircon.Mode.AUTO:
+                setHeating();
+                if (
+                    currentHeaterCoolerState ===
+                    Characteristic.CurrentHeaterCoolerState.IDLE
+                ) {
+                    setCooling();
+                }
+                break;
+            case DaikinAircon.Mode.DRY:
+            case DaikinAircon.Mode.FAN:
+            default:
+                currentHeaterCoolerState =
+                    Characteristic.CurrentHeaterCoolerState.IDLE;
+                break;
+        }
+
+        return currentHeaterCoolerState;
+    }
+
     async getCurrentHeaterCoolerState() {
         let currentHeaterCoolerState;
 
-        const [
-            { power, mode, targetTemperature, modeTargetTemperature },
-            { indoorTemperature },
-        ] = await Promise.all([
-            this.aircon.getControlInfo(),
-            this.aircon.getSensorInfo(),
-        ]);
+        const {
+            power,
+            mode,
+            targetTemperature,
+            modeTargetTemperature,
+        } = await this.aircon.getControlInfo();
 
         if (!power) {
             currentHeaterCoolerState =
                 Characteristic.CurrentHeaterCoolerState.INACTIVE;
         } else {
-            const setHeating = () => {
-                const heatingTarget =
-                    modeTargetTemperature[DaikinAircon.Mode.HEAT] ||
-                    targetTemperature;
-
-                currentHeaterCoolerState =
-                    indoorTemperature < heatingTarget
-                        ? Characteristic.CurrentHeaterCoolerState.HEATING
-                        : Characteristic.CurrentHeaterCoolerState.IDLE;
-            };
-
-            const setCooling = () => {
-                const coolingTarget =
-                    modeTargetTemperature[DaikinAircon.Mode.COOL] ||
-                    targetTemperature;
-
-                currentHeaterCoolerState =
-                    indoorTemperature > coolingTarget
-                        ? Characteristic.CurrentHeaterCoolerState.COOLING
-                        : Characteristic.CurrentHeaterCoolerState.IDLE;
-            };
-
-            switch (mode) {
-                case DaikinAircon.Mode.HEAT:
-                    setHeating();
-                    break;
-                case DaikinAircon.Mode.COOL:
-                    setCooling();
-                    break;
-                case DaikinAircon.Mode.AUTO:
-                    setHeating();
-                    if (
-                        currentHeaterCoolerState ===
-                        Characteristic.CurrentHeaterCoolerState.IDLE
-                    ) {
-                        setCooling();
-                    }
-                    break;
-                case DaikinAircon.Mode.DRY:
-                case DaikinAircon.Mode.FAN:
-                default:
-                    currentHeaterCoolerState =
-                        Characteristic.CurrentHeaterCoolerState.IDLE;
-                    break;
-            }
+            currentHeaterCoolerState = await this.calculateHeatingCoolingState(
+                mode,
+                targetTemperature,
+                modeTargetTemperature
+            );
         }
 
         return currentHeaterCoolerState;
@@ -328,13 +348,15 @@ class HeaterCooler extends Accessory {
             targetTemperature: modeTargetTemperature[mode] || targetTemperature,
         });
 
-        // update side effect properties asynchronously
-        setTimeout(async () => {
-            this.active.updateValue(await this.getActive());
-            this.currentHeaterCoolerState.updateValue(
-                await this.getCurrentHeaterCoolerState()
-            );
-        }, UPDATE_DELAY);
+        // update side effect properties
+        this.active.updateValue(Characteristic.Active.ACTIVE);
+        this.currentHeaterCoolerState.updateValue(
+            await this.calculateHeatingCoolingState(
+                mode,
+                targetTemperature,
+                modeTargetTemperature
+            )
+        );
     }
 
     async getCurrentTemperature() {
@@ -366,29 +388,29 @@ class HeaterCooler extends Accessory {
     }
 
     async setCoolingThresholdTemperature(value) {
+        const { mode } = await this.aircon.getControlInfo();
+
         await this.aircon.setControlInfo({
             targetTemperature: value,
         });
 
-        // update side effect properties asynchronously
-        setTimeout(async () => {
-            this.currentHeaterCoolerState.updateValue(
-                await this.getCurrentHeaterCoolerState()
-            );
-        }, UPDATE_DELAY);
+        // update side effect properties
+        this.currentHeaterCoolerState.updateValue(
+            await this.calculateHeatingCoolingState(mode, value)
+        );
     }
 
     async setHeatingThresholdTemperature(value) {
+        const { mode } = await this.aircon.getControlInfo();
+
         await this.aircon.setControlInfo({
             targetTemperature: value,
         });
 
-        // update side effect properties asynchronously
-        setTimeout(async () => {
-            this.currentHeaterCoolerState.updateValue(
-                await this.getCurrentHeaterCoolerState()
-            );
-        }, UPDATE_DELAY);
+        // update side effect properties
+        this.currentHeaterCoolerState.updateValue(
+            await this.calculateHeatingCoolingState(mode, value)
+        );
     }
 
     async getFanRotationSpeed() {

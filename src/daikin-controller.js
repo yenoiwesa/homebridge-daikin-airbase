@@ -4,6 +4,8 @@ const debounce = require('debounce-promise');
 const { cachePromise } = require('./utils');
 const { QUERIES_MAPPING, RESPONSES_MAPPING } = require('./constants');
 
+const RETRY_ATTEMPTS = 3;
+
 class DaikinAircon {
     static get Power() {
         return {
@@ -81,7 +83,7 @@ class DaikinAircon {
 
             forEach(params, (value, key) => {
                 if (key in mapping) {
-                    url.searchParams.append(mapping[key], params[key]);
+                    url.searchParams.append(mapping[key], value);
                 }
             });
         }
@@ -91,8 +93,19 @@ class DaikinAircon {
 
     async sendRequest(path, values) {
         const url = this.getUrl(path, values);
+        let response;
 
-        const response = await fetch(url);
+        for (let count = 0; count < RETRY_ATTEMPTS; count++) {
+            try {
+                response = await fetch(url);
+
+                break;
+            } catch (error) {
+                if (!(error instanceof fetch.FetchError)) {
+                    throw error;
+                }
+            }
+        }
 
         if (!response.ok) {
             throw response.status;
