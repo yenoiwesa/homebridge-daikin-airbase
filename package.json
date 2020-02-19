@@ -3,6 +3,10 @@
     "version": "1.0.0",
     "description": "A Homebridge plugin providing support for the Daikin Airbase.",
     "main": "index.js",
+    "files": [
+        "/index.js",
+        "/src"
+    ],
     "scripts": {
         "start": "homebridge -D -U ./homebridge-home -P .",
         "debug": "ndb npm start",
