@@ -1,6 +1,6 @@
 {
     "name": "homebridge-daikin-airbase",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "description": "A Homebridge plugin providing support for the Daikin Airbase.",
     "main": "index.js",
     "files": [
