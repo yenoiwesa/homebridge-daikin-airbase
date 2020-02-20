@@ -33,7 +33,7 @@ class DaikinAircon {
         };
     }
 
-    constructor(log, { hostname }) {
+    constructor({ log, hostname }) {
         this.log = log;
         this.hostname = hostname;
 

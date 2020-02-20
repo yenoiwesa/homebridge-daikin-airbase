@@ -8,6 +8,8 @@ A Homebridge plugin providing support for the **Daikin Airbase** WiFi module (BR
 
 It allows to turn on / off the aircon, set it to cool / heat / auto mode (when supported), change the target temperature and the fan speed.
 
+Daikin devices will be auto-discovered on the network and mapped to individual heater/coolers in the Home app.
+
 <p align="center">
     <img src="documentation/change-cooler.gif" height="400" alt="Animated gif showing the Daikin aircon in the home app, setting it to cool">
     &nbsp;
@@ -52,19 +54,19 @@ To configure `homebridge-daikin-airbase`, add the `DaikinAirbase` platform to th
     "platforms": [
         {
             "platform": "DaikinAirbase",
-            "name": "My Daikin Airbase Hub",
-
-            "hostname": "<e.g. 192.168.1.10>"
+            "name": "My Daikin Airbase Hub"
         }
     ]
 }
 ```
 
+With the above configuration, the platform will perform UDP auto-discovery of the Daikin devices on the local network.
+
 The platform can be configured with the following parameters:
 
-| Parameter  | Type   | Default | Note                                                                                                       |
-| ---------- | ------ | ------- | ---------------------------------------------------------------------------------------------------------- |
-| `hostname` | String | `null`  | **Required** - The hostname on your local network of the Daikin Airbase module (do not include `http://`). |
+| Parameter  | Type                    | Default | Note                                                                                                                                                                                  |
+| ---------- | ----------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `hostname` | String or Array(String) | `null`  | **Optional** - The hostname(s) on your local network of the Daikin Airbase modules (e.g. `192.168.1.10`). Supports a single hostname as `String` or multiple hostnames in an `Array`. |
 
 # Limitation
 

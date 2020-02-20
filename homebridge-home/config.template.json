@@ -11,8 +11,7 @@
     "platforms": [
         {
             "platform": "DaikinAirbase",
-            "name": "Daikin Airbase",
-            "hostname": "Your daikin airbase hostname, e.g. 192.168.1.10"
+            "name": "Daikin Airbase"
         }
     ]
 }

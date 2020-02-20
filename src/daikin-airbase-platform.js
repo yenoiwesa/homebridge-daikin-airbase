@@ -1,4 +1,6 @@
+const { castArray } = require('lodash');
 const DaikinAircon = require('./daikin-controller');
+const discover = require('./daikin-discovery');
 const HeaterCooler = require('./heater-cooler');
 
 let homebridge;
@@ -20,7 +22,6 @@ class DaikinAirbasePlatform {
         this.platformAccessories = [];
 
         this.log(`${PLATFORM_NAME} Init`);
-        this.aircon = new DaikinAircon(log, config);
     }
 
     /**
@@ -29,15 +30,27 @@ class DaikinAirbasePlatform {
     async accessories(callback) {
         // retrieve devices defined in overkiz
         try {
-            await this.aircon.init();
+            // use hostnames from the configuration or auto discover if none listed
+            const hostnames =
+                (this.config.hostname && castArray(this.config.hostname)) ||
+                (await discover(this.log));
 
-            const heaterCooler = new HeaterCooler({
-                homebridge,
-                log: this.log,
-                aircon: this.aircon,
-            });
+            for (const hostname of hostnames) {
+                const aircon = new DaikinAircon({ hostname, log: this.log });
 
-            this.platformAccessories.push(heaterCooler.homekitAccessory);
+                await aircon.init();
+
+                const heaterCooler = new HeaterCooler({
+                    homebridge,
+                    aircon,
+                    log: this.log,
+                });
+
+                this.platformAccessories.push(heaterCooler.homekitAccessory);
+                this.log.info(
+                    `Registered device: ${aircon.info.name} (SSID: ${aircon.info.ssid})`
+                );
+            }
 
             this.log.debug(`Found ${this.platformAccessories.length} devices`);
         } catch (error) {
