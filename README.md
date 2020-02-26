@@ -6,15 +6,14 @@
 
 A Homebridge plugin providing support for the **Daikin Airbase** WiFi module (BRP15B61).
 
-It allows to turn on / off the aircon, set it to cool / heat / auto mode (when supported), change the target temperature and the fan speed.
+It allows to turn on/off the aircon, set it to cool/heat/fan/dry/auto mode (when supported), change the target temperature and the fan speed.
 
-Daikin devices will be auto-discovered on the network and mapped to individual heater/coolers in the Home app.
+Daikin devices will be auto-discovered on the network and mapped to individual accessories in the Home app. Each device will be represented as an accessory group with:
 
-<p align="center">
-    <img src="documentation/change-cooler.gif" height="400" alt="Animated gif showing the Daikin aircon in the home app, setting it to cool">
-    &nbsp;
-    <img src="documentation/change-fan-setting.gif" height="400" alt="Animated gif showing the Daikin aircon in the home app, changing the fan speed">
-</p>
+-   A heater/cooler service allowing to set the aircon to cool/heat or auto mode, as well as the threshold temperatures,
+-   A switch allowing to turn on/off fan mode,
+-   A fan service allowing to change the aircon's fan speed (low/medium/high) if your device supports changing fan speed,
+-   A second switch allowing to turn on/off dry mode if your device supports that mode.
 
 # Requirements
 
@@ -67,10 +66,6 @@ The platform can be configured with the following parameters:
 | Parameter  | Type                    | Default | Note                                                                                                                                                                                  |
 | ---------- | ----------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `hostname` | String or Array(String) | `null`  | **Optional** - The hostname(s) on your local network of the Daikin Airbase modules (e.g. `192.168.1.10`). Supports a single hostname as `String` or multiple hostnames in an `Array`. |
-
-# Limitation
-
-This plugin does not support setting the aircon into **Dry** or **Fan** mode as these are not supported natively by Homekit (they cannot be mapped to a control in the Home app).
 
 # Contribute
 
