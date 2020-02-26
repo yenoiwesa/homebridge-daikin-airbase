@@ -1,7 +1,7 @@
 const { castArray } = require('lodash');
-const DaikinAircon = require('./daikin-controller');
+const Airbase = require('./airbase-controller');
 const discover = require('./daikin-discovery');
-const HeaterCooler = require('./heater-cooler');
+const Aircon = require('./accessories/aircon');
 
 let homebridge;
 
@@ -36,19 +36,23 @@ class DaikinAirbasePlatform {
                 (await discover(this.log));
 
             for (const hostname of hostnames) {
-                const aircon = new DaikinAircon({ hostname, log: this.log });
-
-                await aircon.init();
-
-                const heaterCooler = new HeaterCooler({
-                    homebridge,
-                    aircon,
+                const airbase = new Airbase({
+                    hostname,
                     log: this.log,
                 });
 
-                this.platformAccessories.push(heaterCooler.homekitAccessory);
+                await airbase.init();
+
+                const aircon = new Aircon({
+                    homebridge,
+                    airbase,
+                    log: this.log,
+                    config: this.config,
+                });
+
+                this.platformAccessories.push(aircon.getHomekitAccessory());
                 this.log.info(
-                    `Registered device: ${aircon.info.name} (SSID: ${aircon.info.ssid})`
+                    `Registered device: ${airbase.info.name} (SSID: ${airbase.info.ssid})`
                 );
             }
 

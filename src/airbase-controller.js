@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const { setWith, forEach, merge } = require('lodash');
+const { setWith, forEach, merge, orderBy } = require('lodash');
 const debounce = require('debounce-promise');
 const { cachePromise } = require('./utils');
 const { QUERIES_MAPPING, RESPONSES_MAPPING } = require('./constants');
@@ -46,7 +46,7 @@ class DaikinAircon {
 
         this.getSensorInfo = cachePromise(
             this.doGetSensorInfo.bind(this),
-            5 * 1000
+            30 * 1000
         ).exec;
 
         this.setControlInfo = debounce(
@@ -134,7 +134,10 @@ class DaikinAircon {
     }
 
     async doSetAccumulatedControlInfo(accArgs) {
-        const values = merge({}, ...accArgs.map(args => args[0]));
+        const deltas = accArgs.map(args => args[0]);
+        const prioritisedDeltas = orderBy(deltas, delta => delta.priority || 0);
+
+        const values = merge({}, ...prioritisedDeltas);
 
         const controlInfo = await this.doSetControlInfo(values);
 
@@ -149,7 +152,9 @@ class DaikinAircon {
         // reset the response cache for the next call
         this.resetControlInfoCache();
 
-        return this.sendRequest('aircon/set_control_info', newControlInfo);
+        await this.sendRequest('aircon/set_control_info', newControlInfo);
+
+        return newControlInfo;
     }
 
     async doGetSensorInfo() {
