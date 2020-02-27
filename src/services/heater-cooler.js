@@ -265,7 +265,6 @@ class HeaterCooler extends Service {
                     setCooling();
                 }
                 break;
-            case Airbase.Mode.DRY:
             default:
                 currentHeaterCoolerState =
                     Characteristic.CurrentHeaterCoolerState.IDLE;
