@@ -7,7 +7,7 @@ const { QUERIES_MAPPING, RESPONSES_MAPPING } = require('./constants');
 const RETRY_ATTEMPTS = 3;
 const GET_CONTROL_INFO_CACHE_DURATION = 1000;
 const GET_SENSOR_INFO_CACHE_DURATION = 30 * 1000;
-const SET_CONTROL_INFO_DEBOUNCE_DELAY = 1000;
+const SET_CONTROL_INFO_DEBOUNCE_DELAY = 800;
 
 class DaikinAircon {
     static get Power() {

@@ -44,14 +44,18 @@ class DryModeSwitch extends Service {
     async setOn(value) {
         let controlInfo;
 
+        // setting priority to this request to make sure it overrides the mode
+        // from Heater/Cooler's setActive during the properties merge
         if (value) {
             controlInfo = await this.airbase.setControlInfo({
                 power: Airbase.Power.ON,
                 mode: Airbase.Mode.DRY,
+                priority: 1,
             });
         } else {
             controlInfo = await this.airbase.setControlInfo({
                 power: Airbase.Power.OFF,
+                priority: 1,
             });
         }
 
