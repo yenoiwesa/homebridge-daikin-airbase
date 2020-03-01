@@ -5,9 +5,9 @@ const { cachePromise } = require('./utils');
 const { QUERIES_MAPPING, RESPONSES_MAPPING } = require('./constants');
 
 const RETRY_ATTEMPTS = 3;
-const GET_CONTROL_INFO_CACHE_DURATION = 1000;
+const GET_CONTROL_INFO_CACHE_DURATION = 2000;
 const GET_SENSOR_INFO_CACHE_DURATION = 30 * 1000;
-const SET_CONTROL_INFO_DEBOUNCE_DELAY = 800;
+const SET_CONTROL_INFO_DEBOUNCE_DELAY = 500;
 
 class DaikinAircon {
     static get Power() {
@@ -40,15 +40,12 @@ class DaikinAircon {
         this.log = log;
         this.hostname = hostname;
 
-        const {
-            exec: getControlInfo,
-            reset: resetControlInfoCache,
-        } = cachePromise(
+        const { exec: getControlInfo, set: setControlInfoCache } = cachePromise(
             this.doGetControlInfo.bind(this),
             GET_CONTROL_INFO_CACHE_DURATION
         );
         this.getControlInfo = getControlInfo;
-        this.resetControlInfoCache = resetControlInfoCache;
+        this.setControlInfoCache = setControlInfoCache;
 
         this.getSensorInfo = cachePromise(
             this.doGetSensorInfo.bind(this),
@@ -155,10 +152,9 @@ class DaikinAircon {
         const controlInfo = await this.getControlInfo();
         const newControlInfo = { ...controlInfo, ...values };
 
-        // reset the response cache for the next call
-        this.resetControlInfoCache();
-
         await this.sendRequest('aircon/set_control_info', newControlInfo);
+
+        this.setControlInfoCache(newControlInfo);
 
         return newControlInfo;
     }
