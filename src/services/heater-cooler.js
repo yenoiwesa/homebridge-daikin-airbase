@@ -9,9 +9,7 @@ class HeaterCooler extends Service {
         super({
             log,
             airbase,
-            service: new homebridge.hap.Service.HeaterCooler(
-                'Heating & Cooling'
-            ),
+            service: new homebridge.hap.Service.HeaterCooler('Heat & Cool'),
             getAllServices,
         });
 
