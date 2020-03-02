@@ -83,8 +83,14 @@ class Fan extends Service {
     }
 
     async getRotationSpeed(controlInfo = null) {
-        const { fanRate } =
+        const { power, fanRate } =
             controlInfo || (await this.airbase.getControlInfo());
+
+        // make sure to map power off to zero speed
+        // otherwise the Home app has display consistency issues
+        if (power !== Airbase.Power.ON) {
+            return 0;
+        }
 
         let fanStep;
         switch (fanRate) {
