@@ -8,31 +8,45 @@ class Aircon extends Accessory {
     constructor({ homebridge, log, airbase, config }) {
         super({ homebridge, log, airbase, config });
 
-        const getAllServices = this.getServices.bind(this);
+        const updateAllServices = this.updateAllServices.bind(this);
 
         this.addService(
             new HeaterCooler({
                 homebridge,
                 log,
                 airbase,
-                getAllServices,
+                updateAllServices,
             })
         );
 
         if (airbase.info.fanRateSupported) {
             this.addService(
-                new Fan({ homebridge, log, airbase, getAllServices })
+                new Fan({ homebridge, log, airbase, updateAllServices })
             );
         }
 
         this.addService(
-            new FanModeSwitch({ homebridge, log, airbase, getAllServices })
+            new FanModeSwitch({ homebridge, log, airbase, updateAllServices })
         );
 
         if (airbase.info.dryModeSupported) {
             this.addService(
-                new DryModeSwitch({ homebridge, log, airbase, getAllServices })
+                new DryModeSwitch({
+                    homebridge,
+                    log,
+                    airbase,
+                    updateAllServices,
+                })
             );
+        }
+    }
+
+    async updateAllServices({ controlInfo, sensorInfo } = {}) {
+        controlInfo = controlInfo || (await this.airbase.getControlInfo());
+        sensorInfo = sensorInfo || (await this.airbase.getSensorInfo());
+
+        for (const service of this.getServices()) {
+            service.updateState({ controlInfo, sensorInfo });
         }
     }
 }

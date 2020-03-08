@@ -3,12 +3,12 @@ const Service = require('./service');
 let Characteristic;
 
 class AccessoryInformation extends Service {
-    constructor({ homebridge, log, airbase, getAllServices }) {
+    constructor({ homebridge, log, airbase, updateAllServices }) {
         super({
             log,
             airbase,
             service: new homebridge.hap.Service.AccessoryInformation(),
-            getAllServices,
+            updateAllServices,
         });
 
         Characteristic = homebridge.hap.Characteristic;

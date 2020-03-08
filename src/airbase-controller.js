@@ -115,7 +115,14 @@ class DaikinAircon {
         }
 
         const result = this.normalizeResponse(path, await response.text());
-        this.log.debug('Sent:', url.toString(), 'Response:', result);
+        this.log.debug(
+            'Sent:',
+            url.toString(),
+            'With Values:',
+            values,
+            'Response:',
+            result
+        );
         return result;
     }
 
@@ -150,7 +157,7 @@ class DaikinAircon {
     async doSetControlInfo(values) {
         // must send the complete list of values to the controller
         const controlInfo = await this.getControlInfo();
-        const newControlInfo = { ...controlInfo, ...values };
+        const newControlInfo = merge({}, controlInfo, values);
 
         await this.sendRequest('aircon/set_control_info', newControlInfo);
 

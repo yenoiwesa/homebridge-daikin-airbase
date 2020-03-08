@@ -4,12 +4,12 @@ const Service = require('./service');
 let Characteristic;
 
 class FanModeSwitch extends Service {
-    constructor({ homebridge, log, airbase, getAllServices }) {
+    constructor({ homebridge, log, airbase, updateAllServices }) {
         super({
             log,
             airbase,
             service: new homebridge.hap.Service.Switch('Fan Mode', 'fan'),
-            getAllServices,
+            updateAllServices,
         });
 
         Characteristic = homebridge.hap.Characteristic;
@@ -30,7 +30,7 @@ class FanModeSwitch extends Service {
             );
     }
 
-    async updateState(controlInfo) {
+    async updateState({ controlInfo }) {
         this.on.updateValue(await this.getOn(controlInfo));
     }
 
@@ -60,7 +60,7 @@ class FanModeSwitch extends Service {
         }
 
         // update side effect properties
-        this.updateAll(controlInfo);
+        this.updateAllServices({ controlInfo });
     }
 }
 

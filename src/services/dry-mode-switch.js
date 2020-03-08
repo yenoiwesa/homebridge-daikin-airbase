@@ -4,12 +4,12 @@ const Service = require('./service');
 let Characteristic;
 
 class DryModeSwitch extends Service {
-    constructor({ homebridge, log, airbase, getAllServices }) {
+    constructor({ homebridge, log, airbase, updateAllServices }) {
         super({
             log,
             airbase,
             service: new homebridge.hap.Service.Switch('Dry Mode', 'dry'),
-            getAllServices,
+            updateAllServices,
         });
 
         Characteristic = homebridge.hap.Characteristic;
@@ -30,7 +30,7 @@ class DryModeSwitch extends Service {
             );
     }
 
-    async updateState(controlInfo) {
+    async updateState({ controlInfo }) {
         this.on.updateValue(await this.getOn(controlInfo));
     }
 
@@ -60,7 +60,7 @@ class DryModeSwitch extends Service {
         }
 
         // update side effect properties
-        this.updateAll(controlInfo);
+        this.updateAllServices({ controlInfo });
     }
 }
 
