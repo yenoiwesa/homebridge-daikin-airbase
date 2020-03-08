@@ -62,11 +62,9 @@ class Aircon extends Accessory {
     }
 
     poll(interval) {
-        setTimeout(() => {
-            setInterval(() => {
-                this.log.debug('Polling for Airbase state');
-                this.updateAllServices();
-            }, interval);
+        setInterval(() => {
+            this.log.debug('Polling for Airbase state');
+            this.updateAllServices();
         }, interval);
     }
 
