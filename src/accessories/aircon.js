@@ -1,8 +1,12 @@
+const { get, isNumber } = require('lodash');
 const HeaterCooler = require('../services/heater-cooler');
 const Fan = require('../services/fan');
 const FanModeSwitch = require('../services/fan-mode-switch');
 const DryModeSwitch = require('../services/dry-mode-switch');
 const Accessory = require('./accessory');
+
+const POLLING_INTERVAL_CONFIG = 'pollingInterval';
+const POLLING_INTERVAL_DEFAULT = 5; // minutes
 
 class Aircon extends Accessory {
     constructor({ homebridge, log, airbase, config }) {
@@ -39,6 +43,31 @@ class Aircon extends Accessory {
                 })
             );
         }
+
+        const pollingInterval = Math.max(
+            get(this.config, POLLING_INTERVAL_CONFIG, POLLING_INTERVAL_DEFAULT),
+            0
+        );
+
+        if (pollingInterval && isNumber(pollingInterval)) {
+            this.log.info(
+                `Starting polling for Airbase state every ${pollingInterval} minute(s)`
+            );
+
+            // start polling
+            this.poll(pollingInterval * 60 * 1000);
+        } else {
+            this.log.info('Polling for Airbase state disabled');
+        }
+    }
+
+    poll(interval) {
+        setTimeout(() => {
+            setInterval(() => {
+                this.log.debug('Polling for Airbase state');
+                this.updateAllServices();
+            }, interval);
+        }, interval);
     }
 
     async updateAllServices({ controlInfo, sensorInfo } = {}) {
