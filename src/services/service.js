@@ -1,19 +1,13 @@
 class Service {
-    constructor({ log, airbase, service, getAllServices }) {
+    constructor({ log, airbase, service, updateAllServices }) {
         this.log = log;
         this.airbase = airbase;
         this.service = service;
-        this.getAllServices = getAllServices;
-    }
-
-    updateAll(controlInfo) {
-        for (const service of this.getAllServices()) {
-            service.updateState(controlInfo);
-        }
+        this.updateAllServices = updateAllServices;
     }
 
     // eslint-disable-next-line no-unused-vars
-    updateState(controlInfo) {
+    updateState({ controlInfo, sensorInfo }) {
         // to be implemented in children classes
     }
 

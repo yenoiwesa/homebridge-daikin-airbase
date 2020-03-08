@@ -4,12 +4,12 @@ const Service = require('./service');
 let Characteristic;
 
 class Fan extends Service {
-    constructor({ homebridge, log, airbase, getAllServices }) {
+    constructor({ homebridge, log, airbase, updateAllServices }) {
         super({
             log,
             airbase,
             service: new homebridge.hap.Service.Fan('Fan Speed'),
-            getAllServices,
+            updateAllServices,
         });
 
         Characteristic = homebridge.hap.Characteristic;
@@ -60,7 +60,7 @@ class Fan extends Service {
             );
     }
 
-    async updateState(controlInfo) {
+    async updateState({ controlInfo }) {
         this.on.updateValue(await this.getOn(controlInfo));
         this.rotationSpeed.updateValue(
             await this.getRotationSpeed(controlInfo)
@@ -79,7 +79,7 @@ class Fan extends Service {
         });
 
         // update side effect properties
-        this.updateAll(controlInfo);
+        this.updateAllServices({ controlInfo });
     }
 
     async getRotationSpeed(controlInfo = null) {
@@ -129,7 +129,7 @@ class Fan extends Service {
         });
 
         // update side effect properties
-        this.updateAll(controlInfo);
+        this.updateAllServices({ controlInfo });
     }
 }
 

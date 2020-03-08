@@ -5,12 +5,12 @@ const Service = require('./service');
 let Characteristic;
 
 class HeaterCooler extends Service {
-    constructor({ homebridge, log, airbase, getAllServices }) {
+    constructor({ homebridge, log, airbase, updateAllServices }) {
         super({
             log,
             airbase,
             service: new homebridge.hap.Service.HeaterCooler('Heat & Cool'),
-            getAllServices,
+            updateAllServices,
         });
 
         Characteristic = homebridge.hap.Characteristic;
@@ -152,10 +152,10 @@ class HeaterCooler extends Service {
             .updateValue(Characteristic.TemperatureDisplayUnits.CELSIUS);
     }
 
-    async updateState(controlInfo) {
+    async updateState({ controlInfo, sensorInfo }) {
         this.active.updateValue(await this.getActive(controlInfo));
         this.currentHeaterCoolerState.updateValue(
-            await this.getCurrentHeaterCoolerState(controlInfo)
+            await this.getCurrentHeaterCoolerState({ controlInfo, sensorInfo })
         );
         this.targetHeaterCoolerState.updateValue(
             await this.getTargetHeaterCoolerState(controlInfo)
@@ -165,6 +165,9 @@ class HeaterCooler extends Service {
         );
         this.heatingThresholdTemperature.updateValue(
             await this.getHeatingThresholdTemperature(controlInfo)
+        );
+        this.currentTemperature.updateValue(
+            await this.getCurrentTemperature(sensorInfo)
         );
     }
 
@@ -209,17 +212,14 @@ class HeaterCooler extends Service {
         }
 
         // update side effect properties
-        this.updateAll(controlInfo);
+        this.updateAllServices({ controlInfo });
     }
 
-    async calculateHeatingCoolingState({
-        mode,
-        targetTemperature,
-        modeTargetTemperature,
-    }) {
-        let currentHeaterCoolerState;
+    async calculateHeatingCoolingState(controlInfo, sensorInfo = null) {
+        const { mode, targetTemperature, modeTargetTemperature } = controlInfo;
+        const { indoorTemperature } = sensorInfo;
 
-        const { indoorTemperature } = await this.airbase.getSensorInfo();
+        let currentHeaterCoolerState;
 
         const setHeating = () => {
             const heatingTarget = get(
@@ -272,7 +272,7 @@ class HeaterCooler extends Service {
         return currentHeaterCoolerState;
     }
 
-    async getCurrentHeaterCoolerState(controlInfo = null) {
+    async getCurrentHeaterCoolerState({ controlInfo, sensorInfo } = {}) {
         let currentHeaterCoolerState;
 
         controlInfo = controlInfo || (await this.airbase.getControlInfo());
@@ -283,8 +283,11 @@ class HeaterCooler extends Service {
             currentHeaterCoolerState =
                 Characteristic.CurrentHeaterCoolerState.INACTIVE;
         } else {
+            sensorInfo = sensorInfo || (await this.airbase.getSensorInfo());
+
             currentHeaterCoolerState = await this.calculateHeatingCoolingState(
-                controlInfo
+                controlInfo,
+                sensorInfo
             );
         }
 
@@ -356,11 +359,12 @@ class HeaterCooler extends Service {
         });
 
         // update side effect properties
-        this.updateAll(controlInfo);
+        this.updateAllServices({ controlInfo });
     }
 
-    async getCurrentTemperature() {
-        const { indoorTemperature } = await this.airbase.getSensorInfo();
+    async getCurrentTemperature(sensorInfo = null) {
+        const { indoorTemperature } =
+            sensorInfo || (await this.airbase.getSensorInfo());
 
         return indoorTemperature;
     }
@@ -382,19 +386,25 @@ class HeaterCooler extends Service {
     async setCoolingThresholdTemperature(value) {
         const controlInfo = await this.airbase.setControlInfo({
             targetTemperature: value,
+            modeTargetTemperature: {
+                [Airbase.Mode.COOL]: value,
+            },
         });
 
         // update side effect properties
-        this.updateAll(controlInfo);
+        this.updateAllServices({ controlInfo });
     }
 
     async setHeatingThresholdTemperature(value) {
         const controlInfo = await this.airbase.setControlInfo({
             targetTemperature: value,
+            modeTargetTemperature: {
+                [Airbase.Mode.HEAT]: value,
+            },
         });
 
         // update side effect properties
-        this.updateAll(controlInfo);
+        this.updateAllServices({ controlInfo });
     }
 }
 

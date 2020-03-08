@@ -63,9 +63,10 @@ With the above configuration, the platform will perform UDP auto-discovery of th
 
 The platform can be configured with the following parameters:
 
-| Parameter  | Type                    | Default | Note                                                                                                                                                                                  |
-| ---------- | ----------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `hostname` | String or Array(String) | `null`  | **Optional** - The hostname(s) on your local network of the Daikin Airbase modules (e.g. `192.168.1.10`). Supports a single hostname as `String` or multiple hostnames in an `Array`. |
+| Parameter         | Type                    | Default | Note                                                                                                                                                                                                                                                                                                                                                                 |
+| ----------------- | ----------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `hostname`        | String or Array(String) | `null`  | **Optional** - The hostname(s) on your local network of the Daikin Airbase modules (e.g. `192.168.1.10`). Supports a single hostname as `String` or multiple hostnames in an `Array`.                                                                                                                                                                                |
+| `pollingInterval` | Number (minutes)        | `5`     | **Optional** - The polling interval for refreshing the platform's accessories state for automations, in minutes. By detault set to 5 minutes, it can be set to `0` to disable polling. Note that the information is refreshed on demand when using the Home app, this configuration is only used for background state updates so that automations can react on them. |
 
 # Contribute
 
