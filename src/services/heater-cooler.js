@@ -18,7 +18,7 @@ class HeaterCooler extends Service {
         // Active
         // INACTIVE (0) | ACTIVE (1)
         this.active = this.getCharacteristic(Characteristic.Active)
-            .on('get', cb =>
+            .on('get', (cb) =>
                 this.getHomekitState(
                     'active state',
                     this.getActive.bind(this),
@@ -38,7 +38,7 @@ class HeaterCooler extends Service {
         // INACTIVE (0) | IDLE (1) | HEATING (2) | COOLING (3)
         this.currentHeaterCoolerState = this.getCharacteristic(
             Characteristic.CurrentHeaterCoolerState
-        ).on('get', cb =>
+        ).on('get', (cb) =>
             this.getHomekitState(
                 'current heater/cooler state',
                 this.getCurrentHeaterCoolerState.bind(this),
@@ -64,7 +64,7 @@ class HeaterCooler extends Service {
             .setProps({
                 validValues: validTargetHeaterCoolerStates,
             })
-            .on('get', cb =>
+            .on('get', (cb) =>
                 this.getHomekitState(
                     'target heater/cooler state',
                     this.getTargetHeaterCoolerState.bind(this),
@@ -83,7 +83,7 @@ class HeaterCooler extends Service {
         // Current Temperature
         this.currentTemperature = this.getCharacteristic(
             Characteristic.CurrentTemperature
-        ).on('get', cb =>
+        ).on('get', (cb) =>
             this.getHomekitState(
                 'current temperature',
                 this.getCurrentTemperature.bind(this),
@@ -100,7 +100,7 @@ class HeaterCooler extends Service {
                 maxValue: this.airbase.info.coolMaxTemperature,
                 minStep: 1,
             })
-            .on('get', cb =>
+            .on('get', (cb) =>
                 this.getHomekitState(
                     'cooling threshold temperature',
                     this.getCoolingThresholdTemperature.bind(this),
@@ -125,7 +125,7 @@ class HeaterCooler extends Service {
                 maxValue: this.airbase.info.heatMaxTemperature,
                 minStep: 1,
             })
-            .on('get', cb =>
+            .on('get', (cb) =>
                 this.getHomekitState(
                     'heating threshold temperature',
                     this.getHeatingThresholdTemperature.bind(this),

@@ -21,7 +21,7 @@ const cachePromise = (promiseCallback, cacheDuration) => {
         }
     };
 
-    const set = value => {
+    const set = (value) => {
         promise = value;
 
         clearTimeout(timeoutId);

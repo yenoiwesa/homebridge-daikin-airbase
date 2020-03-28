@@ -8,7 +8,7 @@ let homebridge;
 const PLUGIN_NAME = 'homebridge-daikin-airbase';
 const PLATFORM_NAME = 'DaikinAirbase';
 
-const DaikinAirbasePlatformFactory = homebridgeInstance => {
+const DaikinAirbasePlatformFactory = (homebridgeInstance) => {
     homebridge = homebridgeInstance;
 
     return DaikinAirbasePlatform;

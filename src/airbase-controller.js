@@ -144,8 +144,11 @@ class DaikinAircon {
     }
 
     async doSetAccumulatedControlInfo(accArgs) {
-        const deltas = accArgs.map(args => args[0]);
-        const prioritisedDeltas = orderBy(deltas, delta => delta.priority || 0);
+        const deltas = accArgs.map((args) => args[0]);
+        const prioritisedDeltas = orderBy(
+            deltas,
+            (delta) => delta.priority || 0
+        );
 
         const values = merge({}, ...prioritisedDeltas);
 

@@ -41,7 +41,7 @@ class Accessory {
     }
 
     getHomekitServices() {
-        return this.services.map(service => service.getHomekitService());
+        return this.services.map((service) => service.getHomekitService());
     }
 
     get name() {

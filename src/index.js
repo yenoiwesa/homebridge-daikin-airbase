@@ -4,7 +4,7 @@ const {
     DaikinAirbasePlatformFactory,
 } = require('./daikin-airbase-platform');
 
-module.exports = function(homebridge) {
+module.exports = function (homebridge) {
     // For platform plugin to be considered as dynamic platform plugin,
     // dynamic must be true. This is not our case.
     homebridge.registerPlatform(

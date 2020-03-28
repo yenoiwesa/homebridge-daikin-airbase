@@ -17,7 +17,7 @@ class FanModeSwitch extends Service {
         // On
         // boolean
         this.on = this.getCharacteristic(Characteristic.On)
-            .on('get', cb =>
+            .on('get', (cb) =>
                 this.getHomekitState('on state', this.getOn.bind(this), cb)
             )
             .on('set', (value, cb) =>

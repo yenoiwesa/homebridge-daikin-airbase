@@ -9,12 +9,12 @@ const PROBE_ATTEMPTS = 10;
 const PROBE_INTERVAL = 500;
 const PROBE_DATA = new Buffer.from('DAIKIN_UDP/common/basic_info');
 
-const discover = log => {
-    return new Promise(resolve => {
+const discover = (log) => {
+    return new Promise((resolve) => {
         log.info(
-            `Starting auto-discovery of Daikin devices for ${(PROBE_ATTEMPTS *
-                PROBE_INTERVAL) /
-                1000} seconds`
+            `Starting auto-discovery of Daikin devices for ${
+                (PROBE_ATTEMPTS * PROBE_INTERVAL) / 1000
+            } seconds`
         );
 
         const discoveredDevices = new Set();
@@ -23,7 +23,7 @@ const discover = log => {
 
         const udpSocket = udp.createSocket({ type: 'udp4', reuseAddr: true });
 
-        udpSocket.on('error', err => {
+        udpSocket.on('error', (err) => {
             log.debug('UDP Socket Error:', err);
         });
 
@@ -46,7 +46,7 @@ const discover = log => {
             sendProbes(PROBE_ATTEMPTS);
         });
 
-        const sendProbes = attemptsLeft => {
+        const sendProbes = (attemptsLeft) => {
             probeTimeout = null;
 
             if (attemptsLeft > 0) {

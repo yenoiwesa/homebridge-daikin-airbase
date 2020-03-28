@@ -17,7 +17,7 @@ class Fan extends Service {
         // On
         // boolean
         this.on = this.getCharacteristic(Characteristic.On)
-            .on('get', cb =>
+            .on('get', (cb) =>
                 this.getHomekitState('on state', this.getOn.bind(this), cb)
             )
             .on('set', (value, cb) =>
@@ -43,7 +43,7 @@ class Fan extends Service {
                 maxValue: 100,
                 minStep: this.fanSpeedSteps,
             })
-            .on('get', cb =>
+            .on('get', (cb) =>
                 this.getHomekitState(
                     'fan rotation speed',
                     this.getRotationSpeed.bind(this),

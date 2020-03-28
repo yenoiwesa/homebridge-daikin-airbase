@@ -10,25 +10,26 @@ const QUERIES_MAPPING = {
     },
 };
 
-const toBoolean = val => Boolean(parseInt(val));
+const toBoolean = (val) => Boolean(parseInt(val));
 
 const RESPONSES_MAPPING = {
     'common/basic_info': {
         name: { key: 'name', parse: decodeURI },
         ver: {
             key: 'version',
-            parse: version => (version || '').split('_').join('.'),
+            parse: (version) => (version || '').split('_').join('.'),
         },
         ssid: { key: 'ssid', parse: String },
+        en_setzone: { key: 'isZoneSupported', parse: toBoolean },
     },
     'aircon/get_model_info': {
         model: {
             key: 'model',
-            parse: model => (model === 'NOTSUPPORT' ? 'N/A' : model),
+            parse: (model) => (model === 'NOTSUPPORT' ? 'N/A' : model),
         },
         type: { key: 'type', parse: String },
         humd: { key: 'isHumidifierSupported', parse: toBoolean },
-        en_zone: { key: 'isZoneSupported', parse: toBoolean },
+        en_zone: { key: 'zonesCount', parse: parseInt },
         en_temp_setting: { key: 'setTemperatureSupported', parse: toBoolean },
         en_frate: { key: 'fanRateSupported', parse: toBoolean },
         en_fdir: { key: 'fanDirectionSupported', parse: toBoolean },
