@@ -33,7 +33,7 @@ npm install -g homebridge
 2. Install the plugin using:
 
 ```sh
-npm install -g --only=prod homebridge-daikin-airbase
+npm install -g homebridge-daikin-airbase
 ```
 
 3. Update your configuration file. See bellow for a sample.

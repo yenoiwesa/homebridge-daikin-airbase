@@ -1,12 +1,12 @@
 const QUERIES_MAPPING = {
     'aircon/set_control_info': {
-        power: { key: 'pow', encode: toString },
-        mode: { key: 'mode', encode: toString },
-        targetTemperature: { key: 'stemp', encode: toString },
-        fanRate: { key: 'f_rate', encode: toString },
-        fanAirside: { key: 'f_airside', encode: toString },
-        fanAuto: { key: 'f_auto', encode: toString },
-        fanDirection: { key: 'f_dir', encode: toString },
+        power: { key: 'pow', encode: String },
+        mode: { key: 'mode', encode: String },
+        targetTemperature: { key: 'stemp', encode: String },
+        fanRate: { key: 'f_rate', encode: String },
+        fanAirside: { key: 'f_airside', encode: String },
+        fanAuto: { key: 'f_auto', encode: String },
+        fanDirection: { key: 'f_dir', encode: String },
     },
     'aircon/set_zone_setting': {
         zoneNames: {
