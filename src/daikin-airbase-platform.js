@@ -55,7 +55,7 @@ class DaikinAirbasePlatform {
 
                 if (airbase.info.zonesSupported && airbase.info.zoneCount) {
                     // retrieve zone names
-                    const { zoneNames } = await this.getRawZoneSetting();
+                    const { zoneNames } = await airbase.getRawZoneSetting();
 
                     // add zone control accessory
                     const zoneControl = new ZoneControl({
