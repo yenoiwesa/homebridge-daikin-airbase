@@ -99,7 +99,7 @@ class DaikinAircon {
             forEach(params, (value, key) => {
                 if (key in mapping) {
                     const { key: normalizedKey, encode } = mapping[key];
-                    encodedParams.append(`${normalizedKey}=${encode(value)}`);
+                    encodedParams.push(`${normalizedKey}=${encode(value)}`);
                 }
             });
 
