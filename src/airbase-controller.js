@@ -90,17 +90,20 @@ class DaikinAircon {
     }
 
     getUrl(path, params) {
-        const url = new URL(`http://${this.hostname}/skyfi/${path}`);
+        let url = `http://${this.hostname}/skyfi/${path}`;
 
         if (params) {
             const mapping = QUERIES_MAPPING[path];
+            const encodedParams = [];
 
             forEach(params, (value, key) => {
                 if (key in mapping) {
                     const { key: normalizedKey, encode } = mapping[key];
-                    url.searchParams.append(normalizedKey, encode(value));
+                    encodedParams.append(`${normalizedKey}=${encode(value)}`);
                 }
             });
+
+            url += '?' + encodedParams.join('&');
         }
 
         return url;

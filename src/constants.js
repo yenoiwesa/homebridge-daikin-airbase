@@ -1,3 +1,10 @@
+const { map } = require('lodash');
+
+const toBoolean = (val) => Boolean(parseInt(val));
+
+const toHexEncodedString = (str) =>
+    map(str, (char) => '%' + Buffer.from(char).toString('hex')).join('');
+
 const QUERIES_MAPPING = {
     'aircon/set_control_info': {
         power: { key: 'pow', encode: String },
@@ -11,7 +18,8 @@ const QUERIES_MAPPING = {
     'aircon/set_zone_setting': {
         zoneNames: {
             key: 'zone_name',
-            encode: (val) => encodeURIComponent(val.join(';')),
+            // somehow, Daikin has decided to have the zone names hex encoded
+            encode: (val) => toHexEncodedString(val.join(';')),
         },
         zoneStatuses: {
             key: 'zone_onoff',
@@ -19,8 +27,6 @@ const QUERIES_MAPPING = {
         },
     },
 };
-
-const toBoolean = (val) => Boolean(parseInt(val));
 
 const RESPONSES_MAPPING = {
     'common/basic_info': {
