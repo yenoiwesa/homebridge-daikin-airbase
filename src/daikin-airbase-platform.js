@@ -2,6 +2,7 @@ const { castArray } = require('lodash');
 const Airbase = require('./airbase-controller');
 const discover = require('./daikin-discovery');
 const Aircon = require('./accessories/aircon');
+const ZoneControl = require('./accessories/zone-control');
 
 let homebridge;
 
@@ -51,6 +52,25 @@ class DaikinAirbasePlatform {
                 });
 
                 this.platformAccessories.push(aircon.getHomekitAccessory());
+
+                if (airbase.info.zonesSupported && airbase.info.zoneCount) {
+                    // retrieve zone names
+                    const { zoneNames } = await airbase.getRawZoneSetting();
+
+                    // add zone control accessory
+                    const zoneControl = new ZoneControl({
+                        homebridge,
+                        airbase,
+                        log: this.log,
+                        config: this.config,
+                        zoneNames: zoneNames.slice(0, airbase.info.zoneCount),
+                    });
+
+                    this.platformAccessories.push(
+                        zoneControl.getHomekitAccessory()
+                    );
+                }
+
                 this.log.info(
                     `Registered device: ${airbase.info.name} (SSID: ${airbase.info.ssid})`
                 );

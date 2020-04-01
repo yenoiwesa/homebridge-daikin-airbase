@@ -1,4 +1,8 @@
+const { get, isNumber } = require('lodash');
 const AccessoryInformation = require('../services/accessory-information');
+
+const POLLING_INTERVAL_CONFIG = 'pollingInterval';
+const POLLING_INTERVAL_DEFAULT = 5; // minutes
 
 class Accessory {
     constructor({ homebridge, log, airbase, config }) {
@@ -12,7 +16,9 @@ class Accessory {
         this.accessory = {
             name: this.name,
             displayName: this.name,
-            uuid_base: UUIDGen.generate(this.airbase.info.ssid),
+            uuid_base: UUIDGen.generate(
+                `${this.airbase.info.ssid}:${this.constructor.name}`
+            ),
             services: [],
             getServices: () => this.getHomekitServices(),
         };
@@ -46,6 +52,38 @@ class Accessory {
 
     get name() {
         return this.airbase.info.name;
+    }
+
+    initPolling() {
+        const pollingInterval = Math.max(
+            get(this.config, POLLING_INTERVAL_CONFIG, POLLING_INTERVAL_DEFAULT),
+            0
+        );
+
+        if (pollingInterval && isNumber(pollingInterval)) {
+            this.log.info(
+                `Starting polling for ${this.constructor.name} state every ${pollingInterval} minute(s)`
+            );
+
+            // start polling
+            this.poll(pollingInterval * 60 * 1000);
+        } else {
+            this.log.info(
+                `Polling for ${this.constructor.name} state disabled`
+            );
+        }
+    }
+
+    poll(interval) {
+        setInterval(() => {
+            this.log.debug(`Polling for ${this.constructor.name} state`);
+            this.updateAllServices();
+        }, interval);
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    async updateAllServices(values) {
+        // to be implemented in children classes
     }
 }
 

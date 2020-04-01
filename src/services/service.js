@@ -7,7 +7,7 @@ class Service {
     }
 
     // eslint-disable-next-line no-unused-vars
-    updateState({ controlInfo, sensorInfo }) {
+    updateState(values) {
         // to be implemented in children classes
     }
 

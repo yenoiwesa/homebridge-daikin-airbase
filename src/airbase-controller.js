@@ -5,8 +5,9 @@ const { cachePromise } = require('./utils');
 const { QUERIES_MAPPING, RESPONSES_MAPPING } = require('./constants');
 
 const RETRY_ATTEMPTS = 3;
-const GET_CONTROL_INFO_CACHE_DURATION = 2000;
+const GET_CONTROL_INFO_CACHE_DURATION = 2 * 1000;
 const GET_SENSOR_INFO_CACHE_DURATION = 30 * 1000;
+const GET_ZONE_SETTING_CACHE_DURATION = 2 * 1000;
 const SET_CONTROL_INFO_DEBOUNCE_DELAY = 500;
 
 class DaikinAircon {
@@ -57,6 +58,16 @@ class DaikinAircon {
             SET_CONTROL_INFO_DEBOUNCE_DELAY,
             { accumulate: true }
         );
+
+        const {
+            exec: getRawZoneSetting,
+            set: setRawZoneSettingCache,
+        } = cachePromise(
+            this.doGetRawZoneSetting.bind(this),
+            GET_ZONE_SETTING_CACHE_DURATION
+        );
+        this.getRawZoneSetting = getRawZoneSetting;
+        this.setRawZoneSettingCache = setRawZoneSettingCache;
     }
 
     normalizeResponse(path, response) {
@@ -79,16 +90,20 @@ class DaikinAircon {
     }
 
     getUrl(path, params) {
-        const url = new URL(`http://${this.hostname}/skyfi/${path}`);
+        let url = `http://${this.hostname}/skyfi/${path}`;
 
         if (params) {
             const mapping = QUERIES_MAPPING[path];
+            const encodedParams = [];
 
             forEach(params, (value, key) => {
                 if (key in mapping) {
-                    url.searchParams.append(mapping[key], value);
+                    const { key: normalizedKey, encode } = mapping[key];
+                    encodedParams.push(`${normalizedKey}=${encode(value)}`);
                 }
             });
+
+            url += '?' + encodedParams.join('&');
         }
 
         return url;
@@ -171,6 +186,44 @@ class DaikinAircon {
 
     async doGetSensorInfo() {
         return this.sendRequest('aircon/get_sensor_info');
+    }
+
+    async doGetRawZoneSetting() {
+        return this.sendRequest('aircon/get_zone_setting');
+    }
+
+    async getZoneSetting(rawZoneSetting = null) {
+        const { zoneNames, zoneStatuses } =
+            rawZoneSetting || (await this.getRawZoneSetting());
+
+        const result = {};
+        for (let index = 0; index < zoneNames.length; index++) {
+            const zoneName = zoneNames[index];
+            const zoneStatus = zoneStatuses[index];
+
+            result[zoneName] = zoneStatus;
+        }
+
+        return result;
+    }
+
+    async setZoneSetting(values) {
+        // must send the complete list of values to the controller
+        const { zoneNames, zoneStatuses } = await this.getRawZoneSetting();
+
+        forEach(values, (zoneStatus, zoneName) => {
+            const zoneIndex = zoneNames.indexOf(zoneName);
+
+            zoneStatuses[zoneIndex] = zoneStatus;
+        });
+
+        const newZoneSetting = { zoneNames, zoneStatuses };
+
+        await this.sendRequest('aircon/set_zone_setting', newZoneSetting);
+
+        this.setRawZoneSettingCache(newZoneSetting);
+
+        return this.getZoneSetting(newZoneSetting);
     }
 }
 
