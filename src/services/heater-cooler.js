@@ -199,11 +199,17 @@ class HeaterCooler extends Service {
         let controlInfo;
 
         if (value === Characteristic.Active.ACTIVE) {
-            // must set the mode here to force the airbase
-            // to leave fan/dry mode if it is the active mode
+            let { mode } = await this.airbase.getControlInfo();
+
+            // if the current mode is FAN or DRY, force the mode to COOL
+            // (since the user controlled the heater/cooler)
+            if (mode === Airbase.Mode.FAN || mode === Airbase.Mode.DRY) {
+                mode = Airbase.Mode.COOL;
+            }
+
             controlInfo = await this.airbase.setControlInfo({
                 power: Airbase.Power.ON,
-                mode: Airbase.Mode.COOL,
+                mode,
             });
         } else {
             controlInfo = await this.airbase.setControlInfo({
