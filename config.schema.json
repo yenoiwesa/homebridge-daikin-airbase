@@ -1,0 +1,18 @@
+{
+    "pluginAlias": "Daikin-Airbase",
+    "pluginType": "platform",
+    "singular": true,
+    "headerDisplay": "Homebridge plugin for the Daikin Airbase WiFi module",
+    "footerDisplay": "",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "description": "Plugin name as displayed in the homebridge log.",
+                "type": "string",
+                "required": true,
+                "default": "Daikin Airbase"
+            }
+        }
+    }
+}
