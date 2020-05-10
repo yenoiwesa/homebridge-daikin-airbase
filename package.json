@@ -5,7 +5,8 @@
     "main": "index.js",
     "files": [
         "/index.js",
-        "/src"
+        "/src",
+        "/config.schema.json"
     ],
     "scripts": {
         "start": "homebridge -D -U ./homebridge-home -P .",
