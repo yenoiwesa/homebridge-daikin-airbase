@@ -12,7 +12,30 @@
                 "type": "string",
                 "required": true,
                 "default": "Daikin Airbase"
+            },
+            "hostname": {
+                "title": "Host Name",
+                "description": "Forces the hostname of the controller, e.g. 192.168.1.10. If not set, the plugin will scan the network to find Airbase devices automatically.",
+                "type": "string",
+                "required": false,
+                "default": ""
+            },
+            "pollingInterval": {
+                "title": "Polling Interval",
+                "description": "The polling interval for refreshing the platform's accessories state for automations, in minutes. By detault set to 5 minutes, it can be set to 0 to disable polling.",
+                "type": "integer",
+                "required": false,
+                "default": 5
             }
         }
-    }
+    },
+    "form": [
+        "name",
+        {
+            "type": "fieldset",
+            "expandable": true,
+            "title": "Advanced Settings",
+            "items": ["hostname", "pollingInterval"]
+        }
+    ]
 }
