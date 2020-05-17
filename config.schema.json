@@ -1,5 +1,5 @@
 {
-    "pluginAlias": "Daikin-Airbase",
+    "pluginAlias": "DaikinAirbase",
     "pluginType": "platform",
     "singular": true,
     "headerDisplay": "Homebridge plugin for the Daikin Airbase WiFi module",
