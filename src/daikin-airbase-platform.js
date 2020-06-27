@@ -63,7 +63,9 @@ class DaikinAirbasePlatform {
                         airbase,
                         log: this.log,
                         config: this.config,
-                        zoneNames: zoneNames.slice(0, airbase.info.zoneCount),
+                        zoneNames: new Set(
+                            zoneNames.slice(0, airbase.info.zoneCount)
+                        ),
                     });
 
                     this.platformAccessories.push(
