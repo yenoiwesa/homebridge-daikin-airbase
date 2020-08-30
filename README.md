@@ -20,7 +20,7 @@ In addition, if your system includes a **Daikin Zone Controller**, zones will be
 # Requirements
 
 -   **Node** version 11 or above (verify with `node --version`).
--   **Homebridge** version 0.4.0 or above.
+-   **Homebridge** version 1.0.0 or above.
 
 # Installation
 
