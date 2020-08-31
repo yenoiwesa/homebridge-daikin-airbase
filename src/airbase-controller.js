@@ -159,8 +159,8 @@ class DaikinAircon {
             const { zoneNames } = await this.getRawZoneSetting();
 
             // add zone control accessory
-            this.info.zoneNames = new Set(
-                zoneNames.slice(0, this.info.zoneCount)
+            this.info.zoneNames = Array.from(
+                new Set(zoneNames.slice(0, this.info.zoneCount))
             );
         }
     }
