@@ -116,28 +116,35 @@ class DaikinAirbasePlatform {
                 [...expectedSSIDs].filter((ssid) => !foundSSIDs.has(ssid))
             );
 
-            if (missingSSIDs.size && !operation.retry()) {
-                // if we have still not found all SSIDs that were previously registered
-                // and have reached the maximum number of attempts, unregister the accessories
-                // that have no airbase associated to them
-                const orphanAccessories = remove(
-                    this.accessories,
-                    (accessory) => !accessory.airbase
-                );
-                this.log.debug(
-                    `Unregistering ${orphanAccessories.length} orphan accessories`
-                );
-                this.api.unregisterPlatformAccessories(
-                    PLUGIN_NAME,
-                    PLATFORM_NAME,
-                    orphanAccessories.map((accessory) =>
-                        accessory.getHomekitAccessory()
-                    )
-                );
+            if (missingSSIDs.size) {
+                if (operation.retry(true)) {
+                    this.log.info(
+                        'Will retry to find missing airbase modules with SSIDs',
+                        [...missingSSIDs]
+                    );
+                } else {
+                    // if we have still not found all SSIDs that were previously registered
+                    // and have reached the maximum number of attempts, unregister the accessories
+                    // that have no airbase associated to them
+                    const orphanAccessories = remove(
+                        this.accessories,
+                        (accessory) => !accessory.airbase
+                    );
+                    this.log.info(
+                        `Unregistering ${orphanAccessories.length} orphan accessories`
+                    );
+                    this.api.unregisterPlatformAccessories(
+                        PLUGIN_NAME,
+                        PLATFORM_NAME,
+                        orphanAccessories.map((accessory) =>
+                            accessory.getHomekitAccessory()
+                        )
+                    );
+                }
+            } else {
+                this.log.info(`Found ${this.accessories.length} devices`);
             }
         });
-
-        this.log.debug(`Found ${this.accessories.length} devices`);
     }
 
     getOrCreateAccessory(type, airbase) {
@@ -171,6 +178,8 @@ class DaikinAirbasePlatform {
                 accessory.getHomekitAccessory(),
             ]);
         }
+
+        return accessory;
     }
 }
 

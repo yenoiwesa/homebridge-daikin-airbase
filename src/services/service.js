@@ -9,7 +9,8 @@ class Service {
         const homekitAccessory = this.accessory.getHomekitAccessory();
 
         // get the service from the accessory if it exists
-        let service = homekitAccessory.getService(name);
+        // use the name first as it is more specific than the type
+        let service = homekitAccessory.getService(name || type);
 
         // otherwise create it
         if (!service) {
