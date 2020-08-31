@@ -62,7 +62,7 @@ class DaikinAirbasePlatform {
         const foundSSIDs = new Set();
 
         const operation = retry.operation({
-            retries: 5,
+            retries: 10,
             factor: 2,
             minTimeout: 5 * 1000,
         });
