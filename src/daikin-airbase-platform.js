@@ -1,18 +1,16 @@
-const { castArray } = require('lodash');
+const { castArray, remove } = require('lodash');
+const retry = require('retry');
 const Airbase = require('./airbase-controller');
 const discover = require('./daikin-discovery');
 const Aircon = require('./accessories/aircon');
 const ZoneControl = require('./accessories/zone-control');
 
-let homebridge;
-
 const PLUGIN_NAME = 'homebridge-daikin-airbase';
 const PLATFORM_NAME = 'DaikinAirbase';
 
-const DaikinAirbasePlatformFactory = (homebridgeInstance) => {
-    homebridge = homebridgeInstance;
-
-    return DaikinAirbasePlatform;
+const AccessoriesMap = {
+    [Aircon.name]: { class: Aircon, nameFormat: '#' },
+    [ZoneControl.name]: { class: ZoneControl, nameFormat: '# Zones' },
 };
 
 class DaikinAirbasePlatform {
@@ -20,72 +18,160 @@ class DaikinAirbasePlatform {
         this.log = log;
         this.config = config;
         this.api = api;
-        this.platformAccessories = [];
+        this.accessories = [];
 
         this.log(`${PLATFORM_NAME} Init`);
+
+        /**
+         * Platforms should wait until the "didFinishLaunching" event has fired before
+         * registering any new accessories.
+         */
+        api.on('didFinishLaunching', () => this.initAccessories());
     }
 
     /**
-     * Called by Homebridge at platform init to list accessories.
+     * Homebridge will call the "configureAccessory" method once for every cached
+     * accessory restored
      */
-    async accessories(callback) {
-        // retrieve devices defined in overkiz
+    configureAccessory(homekitAccessory) {
+        this.log.info(
+            `Restoring cached accessory ${homekitAccessory.displayName}`
+        );
         try {
-            // use hostnames from the configuration or auto discover if none listed
-            const hostnames =
-                (this.config.hostname && castArray(this.config.hostname)) ||
-                (await discover(this.log));
+            const type = homekitAccessory.context.type;
+            const accessory = new AccessoriesMap[type].class({
+                api: this.api,
+                log: this.log,
+                homekitAccessory,
+                config: this.config,
+            });
 
-            for (const hostname of hostnames) {
-                const airbase = new Airbase({
-                    hostname,
-                    log: this.log,
-                });
+            this.accessories.push(accessory);
+        } catch (error) {
+            this.log.error(
+                `Failed to restore cached accessory ${homekitAccessory.displayName}`,
+                error
+            );
+        }
+    }
 
-                await airbase.init();
+    async initAccessories() {
+        const expectedSSIDs = new Set(
+            this.accessories.map((accessory) => accessory.context.airbase.ssid)
+        );
+        const foundSSIDs = new Set();
 
-                const aircon = new Aircon({
-                    homebridge,
-                    airbase,
-                    log: this.log,
-                    config: this.config,
-                });
+        const operation = retry.operation({
+            retries: 5,
+            factor: 2,
+            minTimeout: 5 * 1000,
+        });
 
-                this.platformAccessories.push(aircon.getHomekitAccessory());
-
-                if (airbase.info.zonesSupported && airbase.info.zoneCount) {
-                    // retrieve zone names
-                    const { zoneNames } = await airbase.getRawZoneSetting();
-
-                    // add zone control accessory
-                    const zoneControl = new ZoneControl({
-                        homebridge,
-                        airbase,
-                        log: this.log,
-                        config: this.config,
-                        zoneNames: new Set(
-                            zoneNames.slice(0, airbase.info.zoneCount)
-                        ),
-                    });
-
-                    this.platformAccessories.push(
-                        zoneControl.getHomekitAccessory()
-                    );
-                }
-
-                this.log.info(
-                    `Registered device: ${airbase.info.name} (SSID: ${airbase.info.ssid})`
-                );
+        operation.attempt(async () => {
+            let hostnames = [];
+            try {
+                // use hostnames from the configuration or auto discover if none listed
+                hostnames =
+                    (this.config.hostname && castArray(this.config.hostname)) ||
+                    (await discover(this.log));
+            } catch (error) {
+                this.log.error(error);
             }
 
-            this.log.debug(`Found ${this.platformAccessories.length} devices`);
-        } catch (error) {
-            // do nothing in case of error
-            this.log.error(error);
-        } finally {
-            callback(this.platformAccessories);
+            for (const hostname of hostnames) {
+                try {
+                    const airbase = new Airbase({
+                        hostname,
+                        log: this.log,
+                    });
+
+                    await airbase.init();
+
+                    foundSSIDs.add(airbase.info.ssid);
+
+                    const aircon = this.getOrCreateAccessory(
+                        Aircon.name,
+                        airbase
+                    );
+                    aircon.assignAirbase(airbase);
+
+                    if (airbase.info.zoneNames) {
+                        // add zone control accessory
+                        const zoneControl = this.getOrCreateAccessory(
+                            ZoneControl.name,
+                            airbase
+                        );
+                        zoneControl.assignAirbase(airbase);
+                    }
+
+                    this.log.info(
+                        `Registered device: ${airbase.info.name} (SSID: ${airbase.info.ssid})`
+                    );
+                } catch (error) {
+                    this.log.error(error);
+                }
+            }
+
+            const missingSSIDs = new Set(
+                [...expectedSSIDs].filter((ssid) => !foundSSIDs.has(ssid))
+            );
+
+            if (missingSSIDs.size && !operation.retry()) {
+                // if we have still not found all SSIDs that were previously registered
+                // and have reached the maximum number of attempts, unregister the accessories
+                // that have no airbase associated to them
+                const orphanAccessories = remove(
+                    this.accessories,
+                    (accessory) => !accessory.airbase
+                );
+                this.log.debug(
+                    `Unregistering ${orphanAccessories.length} orphan accessories`
+                );
+                this.api.unregisterPlatformAccessories(
+                    PLUGIN_NAME,
+                    PLATFORM_NAME,
+                    orphanAccessories.map((accessory) =>
+                        accessory.getHomekitAccessory()
+                    )
+                );
+            }
+        });
+
+        this.log.debug(`Found ${this.accessories.length} devices`);
+    }
+
+    getOrCreateAccessory(type, airbase) {
+        // find the existing accessory if one was restored from cache
+        let accessory = this.accessories.find(
+            (accessory) =>
+                accessory.context.airbase.ssid === airbase.info.ssid &&
+                accessory.context.type === type
+        );
+
+        // if none found, create a new one
+        if (!accessory) {
+            const uuid = this.api.hap.uuid.generate(
+                `${airbase.info.ssid}:${type}`
+            );
+            const homekitAccessory = new this.api.platformAccessory(
+                AccessoriesMap[type].nameFormat.replace('#', airbase.info.name),
+                uuid
+            );
+            homekitAccessory.context.airbase = airbase.toContext();
+            accessory = new AccessoriesMap[type].class({
+                api: this.api,
+                log: this.log,
+                homekitAccessory,
+                config: this.config,
+            });
+            this.accessories.push(accessory);
+
+            // register the new accessory
+            this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [
+                accessory.getHomekitAccessory(),
+            ]);
         }
     }
 }
 
-module.exports = { PLUGIN_NAME, PLATFORM_NAME, DaikinAirbasePlatformFactory };
+module.exports = { PLUGIN_NAME, PLATFORM_NAME, DaikinAirbasePlatform };

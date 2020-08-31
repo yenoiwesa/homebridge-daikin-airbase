@@ -3,31 +3,30 @@ const Service = require('./service');
 let Characteristic;
 
 class AccessoryInformation extends Service {
-    constructor({ homebridge, log, airbase, updateAllServices }) {
+    constructor({ api, log, accessory }) {
         super({
             log,
-            airbase,
-            service: new homebridge.hap.Service.AccessoryInformation(),
-            updateAllServices,
+            accessory,
+            descriptor: { type: api.hap.Service.AccessoryInformation },
         });
 
-        Characteristic = homebridge.hap.Characteristic;
+        Characteristic = api.hap.Characteristic;
 
         this.service.setCharacteristic(
             Characteristic.Manufacturer,
-            this.airbase.info.manufacturer
+            accessory.context.airbase.manufacturer
         );
         this.service.setCharacteristic(
             Characteristic.Model,
-            this.airbase.info.model
+            accessory.context.airbase.model
         );
         this.service.setCharacteristic(
             Characteristic.SerialNumber,
-            this.airbase.info.ssid
+            accessory.context.airbase.ssid
         );
         this.service.setCharacteristic(
             Characteristic.FirmwareRevision,
-            this.airbase.info.version
+            accessory.context.airbase.version
         );
     }
 }

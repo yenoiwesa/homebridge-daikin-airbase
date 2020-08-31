@@ -5,15 +5,18 @@ const Service = require('./service');
 let Characteristic;
 
 class HeaterCooler extends Service {
-    constructor({ homebridge, log, airbase, updateAllServices }) {
+    constructor({ api, log, accessory }) {
         super({
             log,
-            airbase,
-            service: new homebridge.hap.Service.HeaterCooler('Heat & Cool'),
-            updateAllServices,
+            accessory,
+            descriptor: {
+                type: api.hap.Service.HeaterCooler,
+                name: 'Heat & Cool',
+                subType: 'heater-cooler',
+            },
         });
 
-        Characteristic = homebridge.hap.Characteristic;
+        Characteristic = api.hap.Characteristic;
 
         // Active
         // INACTIVE (0) | ACTIVE (1)
@@ -52,7 +55,7 @@ class HeaterCooler extends Service {
             Characteristic.TargetHeaterCoolerState.COOL,
             Characteristic.TargetHeaterCoolerState.HEAT,
         ];
-        if (this.airbase.info.autoModeSupported) {
+        if (accessory.context.airbase.autoModeSupported) {
             validTargetHeaterCoolerStates.push(
                 Characteristic.TargetHeaterCoolerState.AUTO
             );
@@ -96,8 +99,8 @@ class HeaterCooler extends Service {
             Characteristic.CoolingThresholdTemperature
         )
             .setProps({
-                minValue: this.airbase.info.coolMinTemperature,
-                maxValue: this.airbase.info.coolMaxTemperature,
+                minValue: accessory.context.airbase.coolMinTemperature,
+                maxValue: accessory.context.airbase.coolMaxTemperature,
                 minStep: 1,
             })
             .on('get', (cb) =>
@@ -121,8 +124,8 @@ class HeaterCooler extends Service {
             Characteristic.HeatingThresholdTemperature
         )
             .setProps({
-                minValue: this.airbase.info.heatMinTemperature,
-                maxValue: this.airbase.info.heatMaxTemperature,
+                minValue: accessory.context.airbase.heatMinTemperature,
+                maxValue: accessory.context.airbase.heatMaxTemperature,
                 minStep: 1,
             })
             .on('get', (cb) =>

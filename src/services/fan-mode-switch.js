@@ -4,15 +4,18 @@ const Service = require('./service');
 let Characteristic;
 
 class FanModeSwitch extends Service {
-    constructor({ homebridge, log, airbase, updateAllServices }) {
+    constructor({ api, log, accessory }) {
         super({
             log,
-            airbase,
-            service: new homebridge.hap.Service.Switch('Fan Mode', 'fan'),
-            updateAllServices,
+            accessory,
+            descriptor: {
+                type: api.hap.Service.Switch,
+                name: 'Fan Mode',
+                subType: 'fan',
+            },
         });
 
-        Characteristic = homebridge.hap.Characteristic;
+        Characteristic = api.hap.Characteristic;
 
         // On
         // boolean

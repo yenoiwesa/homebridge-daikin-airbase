@@ -4,15 +4,18 @@ const Service = require('./service');
 let Characteristic;
 
 class Fan extends Service {
-    constructor({ homebridge, log, airbase, updateAllServices }) {
+    constructor({ api, log, accessory }) {
         super({
             log,
-            airbase,
-            service: new homebridge.hap.Service.Fan('Fan Speed'),
-            updateAllServices,
+            accessory,
+            descriptor: {
+                type: api.hap.Service.Fan,
+                name: 'Fan Speed',
+                subType: 'fan-speed',
+            },
         });
 
-        Characteristic = homebridge.hap.Characteristic;
+        Characteristic = api.hap.Characteristic;
 
         // On
         // boolean
@@ -32,7 +35,7 @@ class Fan extends Service {
         // Fan Rotation Speed
         // Percentage
         this.fanSpeedSteps = parseFloat(
-            (100 / this.airbase.info.fanRateSteps).toFixed(2)
+            (100 / accessory.context.airbase.fanRateSteps).toFixed(2)
         );
 
         this.rotationSpeed = this.getCharacteristic(

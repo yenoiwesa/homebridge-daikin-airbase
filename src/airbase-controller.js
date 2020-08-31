@@ -149,9 +149,24 @@ class DaikinAircon {
 
         this.info = {
             manufacturer: 'Daikin',
+            hostname: this.hostname,
             ...basicInfo,
             ...modelInfo,
         };
+
+        if (this.info.zonesSupported && this.info.zoneCount) {
+            // retrieve zone names
+            const { zoneNames } = await this.getRawZoneSetting();
+
+            // add zone control accessory
+            this.info.zoneNames = new Set(
+                zoneNames.slice(0, this.info.zoneCount)
+            );
+        }
+    }
+
+    toContext() {
+        return this.info;
     }
 
     async doGetControlInfo() {

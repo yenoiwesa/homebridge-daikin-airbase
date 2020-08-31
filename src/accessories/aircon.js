@@ -5,45 +5,35 @@ const DryModeSwitch = require('../services/dry-mode-switch');
 const Accessory = require('./accessory');
 
 class Aircon extends Accessory {
-    constructor({ homebridge, log, airbase, config }) {
-        super({ homebridge, log, airbase, config });
-
-        const updateAllServices = this.updateAllServices.bind(this);
+    constructor({ api, log, homekitAccessory, config }) {
+        super({ api, log, homekitAccessory, config });
 
         this.addService(
             new HeaterCooler({
-                homebridge,
+                api,
                 log,
-                airbase,
-                updateAllServices,
+                accessory: this,
             })
         );
 
-        if (airbase.info.fanRateSupported) {
-            this.addService(
-                new Fan({ homebridge, log, airbase, updateAllServices })
-            );
+        if (this.context.airbase.fanRateSupported) {
+            this.addService(new Fan({ api, log, accessory: this }));
         }
 
-        this.addService(
-            new FanModeSwitch({ homebridge, log, airbase, updateAllServices })
-        );
+        this.addService(new FanModeSwitch({ api, log, accessory: this }));
 
-        if (airbase.info.dryModeSupported) {
+        if (this.context.airbase.dryModeSupported) {
             this.addService(
                 new DryModeSwitch({
-                    homebridge,
+                    api,
                     log,
-                    airbase,
-                    updateAllServices,
+                    accessory: this,
                 })
             );
         }
-
-        this.initPolling();
     }
 
-    async updateAllServices({ controlInfo, sensorInfo } = {}) {
+    async doUpdateAllServices({ controlInfo, sensorInfo } = {}) {
         controlInfo = controlInfo || (await this.airbase.getControlInfo());
         sensorInfo = sensorInfo || (await this.airbase.getSensorInfo());
 
