@@ -1,4 +1,4 @@
-const { castArray, remove } = require('lodash');
+const { castArray } = require('lodash');
 const retry = require('retry');
 const Airbase = require('./airbase-controller');
 const discover = require('./daikin-discovery');
@@ -123,22 +123,10 @@ class DaikinAirbasePlatform {
                         [...missingSSIDs]
                     );
                 } else {
-                    // if we have still not found all SSIDs that were previously registered
-                    // and have reached the maximum number of attempts, unregister the accessories
-                    // that have no airbase associated to them
-                    const orphanAccessories = remove(
-                        this.accessories,
-                        (accessory) => !accessory.airbase
-                    );
-                    this.log.info(
-                        `Unregistering ${orphanAccessories.length} orphan accessories`
-                    );
-                    this.api.unregisterPlatformAccessories(
-                        PLUGIN_NAME,
-                        PLATFORM_NAME,
-                        orphanAccessories.map((accessory) =>
-                            accessory.getHomekitAccessory()
-                        )
+                    this.log.error(
+                        "Couldn't find airbase modules with the following SSIDs",
+                        [...missingSSIDs],
+                        'The related homekit accessories will not work and might need to be manually deleted.'
                     );
                 }
             } else {

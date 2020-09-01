@@ -76,6 +76,14 @@ The platform can be configured with the following parameters:
 
 While the platform adds the different accessories in a specific order, the actual display order in the Apple Home app cannot be controlled by the plugin. You may find that accessories are not sorted in the order you expected. An easy work around for that situation is to simply rename the accessories inside the Home app to suit your needs.
 
+## Accessory caching
+
+Once the platform has discovered an airbase module on the network, either through auto-discovery or static IP mapping, it will create the associated homekit accessories. These accessories will then be cached by homebridge.
+
+As a safeguard, the platform will never unregister accessories if they cannot be contacted anymore. In consequence, if you are removing an airbase module from your network, you will have to clear the accessory cache of the `homebridge-daikin-airbase` plugin manually to unmap the unused accessories.
+
+Accessories also cache their settings. This means that certain technical properties of your Daikin system will not be reflected on the accessories instantly after they are changed (for instance, Zone Controller names, maximum temperature, number of fan speeds, etc.). Restarting the homebridge server twice will ensure that the accessories use an up to date cache for these values.
+
 # Contribute
 
 Please feel free to contribute to this plugin by adding support for new device types, implementing new features or fixing bugs. Pull requests are welcome.
