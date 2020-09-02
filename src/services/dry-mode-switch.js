@@ -4,15 +4,18 @@ const Service = require('./service');
 let Characteristic;
 
 class DryModeSwitch extends Service {
-    constructor({ homebridge, log, airbase, updateAllServices }) {
+    constructor({ api, log, accessory }) {
         super({
             log,
-            airbase,
-            service: new homebridge.hap.Service.Switch('Dry Mode', 'dry'),
-            updateAllServices,
+            accessory,
+            descriptor: {
+                type: api.hap.Service.Switch,
+                name: 'Dry Mode',
+                subType: 'dry',
+            },
         });
 
-        Characteristic = homebridge.hap.Characteristic;
+        Characteristic = api.hap.Characteristic;
 
         // On
         // boolean

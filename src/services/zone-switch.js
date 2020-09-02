@@ -4,18 +4,18 @@ const Service = require('./service');
 let Characteristic;
 
 class ZoneSwitch extends Service {
-    constructor({ homebridge, log, airbase, updateAllServices, zoneName }) {
+    constructor({ api, log, accessory, zoneName }) {
         super({
             log,
-            airbase,
-            service: new homebridge.hap.Service.Switch(
-                zoneName,
-                `zone:${zoneName}`
-            ),
-            updateAllServices,
+            accessory,
+            descriptor: {
+                type: api.hap.Service.Switch,
+                name: zoneName,
+                subType: `zone:${zoneName}`,
+            },
         });
 
-        Characteristic = homebridge.hap.Characteristic;
+        Characteristic = api.hap.Characteristic;
 
         this.zoneName = zoneName;
 

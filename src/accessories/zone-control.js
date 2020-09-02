@@ -2,36 +2,27 @@ const ZoneSwitch = require('../services/zone-switch');
 const Accessory = require('./accessory');
 
 class ZoneControl extends Accessory {
-    constructor({ homebridge, log, airbase, config, zoneNames }) {
-        super({ homebridge, log, airbase, config });
+    constructor({ api, log, homekitAccessory, config }) {
+        super({ api, log, homekitAccessory, config });
 
-        const updateAllServices = this.updateAllServices.bind(this);
-
-        for (const zoneName of zoneNames) {
+        for (const zoneName of this.context.airbase.zoneNames) {
             this.addService(
                 new ZoneSwitch({
-                    homebridge,
+                    api,
                     log,
-                    airbase,
-                    updateAllServices,
+                    accessory: this,
                     zoneName,
                 })
             );
         }
-
-        this.initPolling();
     }
 
-    async updateAllServices({ zoneSetting } = {}) {
+    async doUpdateAllServices({ zoneSetting } = {}) {
         zoneSetting = zoneSetting || (await this.airbase.getZoneSetting());
 
         for (const service of this.getServices()) {
             service.updateState({ zoneSetting });
         }
-    }
-
-    get name() {
-        return `${this.airbase.info.name} Zones`;
     }
 }
 

@@ -5,33 +5,35 @@ const POLLING_INTERVAL_CONFIG = 'pollingInterval';
 const POLLING_INTERVAL_DEFAULT = 5; // minutes
 
 class Accessory {
-    constructor({ homebridge, log, airbase, config }) {
-        this.airbase = airbase;
+    constructor({ api, log, homekitAccessory, config }) {
+        this.api = api;
         this.log = log;
+        this.accessory = homekitAccessory;
         this.config = config;
         this.services = [];
 
-        const UUIDGen = homebridge.hap.uuid;
-
-        this.accessory = {
-            name: this.name,
-            displayName: this.name,
-            uuid_base: UUIDGen.generate(
-                `${this.airbase.info.ssid}:${this.constructor.name}`
-            ),
-            services: [],
-            getServices: () => this.getHomekitServices(),
-        };
+        // assign the accessory type to the context
+        // so we can deserialise it at init
+        this.context.type = this.constructor.name;
 
         this.addService(
             new AccessoryInformation({
-                homebridge,
+                api,
                 log,
-                airbase,
+                accessory: this,
             })
         );
 
         this.log.debug(`Found ${this.constructor.name} ${this.name}`);
+    }
+
+    assignAirbase(airbase) {
+        this.airbase = airbase;
+
+        // use the most up to date airbase details in the accessory context
+        this.context.airbase = airbase.toContext();
+
+        this.initPolling();
     }
 
     getServices() {
@@ -46,12 +48,12 @@ class Accessory {
         return this.accessory;
     }
 
-    getHomekitServices() {
-        return this.services.map((service) => service.getHomekitService());
+    get context() {
+        return this.accessory.context;
     }
 
     get name() {
-        return this.airbase.info.name;
+        return this.accessory.displayName;
     }
 
     initPolling() {
@@ -75,14 +77,24 @@ class Accessory {
     }
 
     poll(interval) {
-        setInterval(() => {
+        if (this.pollIntervalId) {
+            clearInterval(this.pollIntervalId);
+        }
+
+        this.pollIntervalId = setInterval(() => {
             this.log.debug(`Polling for ${this.constructor.name} state`);
             this.updateAllServices();
         }, interval);
     }
 
-    // eslint-disable-next-line no-unused-vars
     async updateAllServices(values) {
+        if (this.airbase) {
+            return this.doUpdateAllServices(values);
+        }
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    async doUpdateAllServices(values) {
         // to be implemented in children classes
     }
 }
