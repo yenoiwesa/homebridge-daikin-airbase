@@ -109,7 +109,7 @@ class Fan extends Service {
                 break;
         }
 
-        return fanStep * this.fanSpeedSteps;
+        return Math.min(Math.ceil(fanStep * this.fanSpeedSteps), 100);
     }
 
     async setRotationSpeed(value) {
