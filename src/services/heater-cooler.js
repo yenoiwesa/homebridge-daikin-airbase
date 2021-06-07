@@ -393,11 +393,14 @@ class HeaterCooler extends Service {
     }
 
     async setCoolingThresholdTemperature(value) {
+        // these requests are highest priority during merging
+        // because they are the ones settings the final temperature
         const controlInfo = await this.airbase.setControlInfo({
             targetTemperature: value,
             modeTargetTemperature: {
                 [Airbase.Mode.COOL]: value,
             },
+            priority: 2,
         });
 
         // update side effect properties
@@ -405,11 +408,14 @@ class HeaterCooler extends Service {
     }
 
     async setHeatingThresholdTemperature(value) {
+        // these requests are highest priority during merging
+        // because they are the ones settings the final temperature
         const controlInfo = await this.airbase.setControlInfo({
             targetTemperature: value,
             modeTargetTemperature: {
                 [Airbase.Mode.HEAT]: value,
             },
+            priority: 2,
         });
 
         // update side effect properties
