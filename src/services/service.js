@@ -46,7 +46,7 @@ class Service {
 
         if (!this.airbase) {
             callback('No airbase is associated to this service');
-            this.log.error(
+            this.log.debug(
                 `No airbase is associated to ${this.accessory.name}`
             );
             return;
@@ -76,7 +76,7 @@ class Service {
 
         if (!this.airbase) {
             callback('No airbase is associated to this service');
-            this.log.error(
+            this.log.debug(
                 `No airbase is associated to ${this.accessory.name}`
             );
             return;
