@@ -212,8 +212,8 @@ class DaikinAircon {
         sensorInfo,
         zoneSetting,
     } = {}) {
-        controlInfo = controlInfo || (await this.airbase.getControlInfo());
-        sensorInfo = sensorInfo || (await this.airbase.getSensorInfo());
+        controlInfo = controlInfo || (await this.getControlInfo());
+        sensorInfo = sensorInfo || (await this.getSensorInfo());
 
         if (this.info.zoneNames) {
             zoneSetting = zoneSetting || (await this.getZoneSetting());
