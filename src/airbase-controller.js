@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const { setWith, forEach, merge, orderBy } = require('lodash');
+const { get, isNumber, setWith, forEach, merge, orderBy } = require('lodash');
 const debounce = require('debounce-promise');
 const { cachePromise } = require('./utils');
 const { QUERIES_MAPPING, RESPONSES_MAPPING } = require('./constants');
@@ -9,6 +9,8 @@ const GET_CONTROL_INFO_CACHE_DURATION = 2 * 1000;
 const GET_SENSOR_INFO_CACHE_DURATION = 30 * 1000;
 const GET_ZONE_SETTING_CACHE_DURATION = 2 * 1000;
 const SET_CONTROL_INFO_DEBOUNCE_DELAY = 500;
+const POLLING_INTERVAL_CONFIG = 'pollingInterval';
+const POLLING_INTERVAL_DEFAULT = 5; // minutes
 
 class DaikinAircon {
     static get Power() {
@@ -40,6 +42,7 @@ class DaikinAircon {
     constructor({ log, hostname }) {
         this.log = log;
         this.hostname = hostname;
+        this.subscribedServices = [];
 
         const { exec: getControlInfo, set: setControlInfoCache } = cachePromise(
             this.doGetControlInfo.bind(this),
@@ -163,10 +166,62 @@ class DaikinAircon {
                 new Set(zoneNames.slice(0, this.info.zoneCount))
             );
         }
+
+        this.initPolling();
+    }
+
+    initPolling() {
+        const pollingInterval = Math.max(
+            get(this.config, POLLING_INTERVAL_CONFIG, POLLING_INTERVAL_DEFAULT),
+            0
+        );
+
+        if (pollingInterval && isNumber(pollingInterval)) {
+            this.log.info(
+                `Starting polling for ${this.info.name} state every ${pollingInterval} minute(s)`
+            );
+
+            // start polling
+            this.poll(pollingInterval * 60 * 1000);
+        } else {
+            this.log.info(`Polling for ${this.info.name} state disabled`);
+        }
+    }
+
+    poll(interval) {
+        if (this.pollIntervalId) {
+            clearInterval(this.pollIntervalId);
+        }
+
+        this.pollIntervalId = setInterval(() => {
+            this.log.debug(`Polling for ${this.info.name} state`);
+            this.updateSubscribedServices();
+        }, interval);
     }
 
     toContext() {
         return this.info;
+    }
+
+    subscribeService(service) {
+        this.subscribedServices.push(service);
+    }
+
+    async updateSubscribedServices({
+        controlInfo,
+        sensorInfo,
+        zoneSetting,
+    } = {}) {
+        controlInfo = controlInfo || (await this.airbase.getControlInfo());
+        sensorInfo = sensorInfo || (await this.airbase.getSensorInfo());
+
+        if (this.info.zoneNames) {
+            zoneSetting = zoneSetting || (await this.getZoneSetting());
+        }
+
+        for (const service of this.subscribedServices) {
+            service.updateState({ controlInfo, sensorInfo, zoneSetting });
+        }
     }
 
     async doGetControlInfo() {

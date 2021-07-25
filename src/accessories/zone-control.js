@@ -16,14 +16,6 @@ class ZoneControl extends Accessory {
             );
         }
     }
-
-    async doUpdateAllServices({ zoneSetting } = {}) {
-        zoneSetting = zoneSetting || (await this.airbase.getZoneSetting());
-
-        for (const service of this.getServices()) {
-            service.updateState({ zoneSetting });
-        }
-    }
 }
 
 module.exports = ZoneControl;

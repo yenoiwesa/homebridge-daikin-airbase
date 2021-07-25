@@ -1,8 +1,4 @@
-const { get, isNumber } = require('lodash');
 const AccessoryInformation = require('../services/accessory-information');
-
-const POLLING_INTERVAL_CONFIG = 'pollingInterval';
-const POLLING_INTERVAL_DEFAULT = 5; // minutes
 
 class Accessory {
     constructor({ api, log, homekitAccessory, config }) {
@@ -33,11 +29,10 @@ class Accessory {
         // use the most up to date airbase details in the accessory context
         this.context.airbase = airbase.toContext();
 
-        this.initPolling();
-    }
-
-    getServices() {
-        return this.services;
+        // subscribe services
+        for (const service of this.services) {
+            this.airbase.subscribeService(service);
+        }
     }
 
     addService(service) {
@@ -54,48 +49,6 @@ class Accessory {
 
     get name() {
         return this.accessory.displayName;
-    }
-
-    initPolling() {
-        const pollingInterval = Math.max(
-            get(this.config, POLLING_INTERVAL_CONFIG, POLLING_INTERVAL_DEFAULT),
-            0
-        );
-
-        if (pollingInterval && isNumber(pollingInterval)) {
-            this.log.info(
-                `Starting polling for ${this.constructor.name} state every ${pollingInterval} minute(s)`
-            );
-
-            // start polling
-            this.poll(pollingInterval * 60 * 1000);
-        } else {
-            this.log.info(
-                `Polling for ${this.constructor.name} state disabled`
-            );
-        }
-    }
-
-    poll(interval) {
-        if (this.pollIntervalId) {
-            clearInterval(this.pollIntervalId);
-        }
-
-        this.pollIntervalId = setInterval(() => {
-            this.log.debug(`Polling for ${this.constructor.name} state`);
-            this.updateAllServices();
-        }, interval);
-    }
-
-    async updateAllServices(values) {
-        if (this.airbase) {
-            return this.doUpdateAllServices(values);
-        }
-    }
-
-    // eslint-disable-next-line no-unused-vars
-    async doUpdateAllServices(values) {
-        // to be implemented in children classes
     }
 }
 

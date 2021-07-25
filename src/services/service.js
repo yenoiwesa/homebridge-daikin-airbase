@@ -25,7 +25,7 @@ class Service {
     }
 
     async updateAllServices(values) {
-        return this.accessory.updateAllServices(values);
+        return this.airbase.updateSubscribedServices(values);
     }
 
     // eslint-disable-next-line no-unused-vars
