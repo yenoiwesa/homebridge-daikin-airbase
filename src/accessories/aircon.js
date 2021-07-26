@@ -1,3 +1,4 @@
+const { get } = require('lodash');
 const HeaterCooler = require('../services/heater-cooler');
 const Fan = require('../services/fan');
 const FanModeSwitch = require('../services/fan-mode-switch');
@@ -16,13 +17,30 @@ class Aircon extends Accessory {
             })
         );
 
-        if (this.context.airbase.fanRateSupported) {
+        const isFanRateSupported = get(
+            config,
+            'overrides.fanRateSupported',
+            this.context.airbase.fanRateSupported
+        );
+        if (isFanRateSupported) {
             this.addService(new Fan({ api, log, accessory: this }));
         }
 
-        this.addService(new FanModeSwitch({ api, log, accessory: this }));
+        const isFanModeSupported = get(
+            config,
+            'overrides.fanModeSupported',
+            true
+        );
+        if (isFanModeSupported) {
+            this.addService(new FanModeSwitch({ api, log, accessory: this }));
+        }
 
-        if (this.context.airbase.dryModeSupported) {
+        const isDryModeSupported = get(
+            config,
+            'overrides.dryModeSupported',
+            this.context.airbase.dryModeSupported
+        );
+        if (isDryModeSupported) {
             this.addService(
                 new DryModeSwitch({
                     api,
