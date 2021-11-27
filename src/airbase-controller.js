@@ -62,13 +62,11 @@ class DaikinAircon {
             { accumulate: true }
         );
 
-        const {
-            exec: getRawZoneSetting,
-            set: setRawZoneSettingCache,
-        } = cachePromise(
-            this.doGetRawZoneSetting.bind(this),
-            GET_ZONE_SETTING_CACHE_DURATION
-        );
+        const { exec: getRawZoneSetting, set: setRawZoneSettingCache } =
+            cachePromise(
+                this.doGetRawZoneSetting.bind(this),
+                GET_ZONE_SETTING_CACHE_DURATION
+            );
         this.getRawZoneSetting = getRawZoneSetting;
         this.setRawZoneSettingCache = setRawZoneSettingCache;
     }
