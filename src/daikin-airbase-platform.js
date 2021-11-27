@@ -202,8 +202,9 @@ class DaikinAirbasePlatform {
 
         // if none found, create a new one
         if (!zoneControl) {
+            const uuidBase = `${airbase.info.ssid}:${ZoneControl.name}`;
             const uuid = this.api.hap.uuid.generate(
-                `${airbase.info.ssid}:${ZoneControl.name}`
+                zoneName == null ? uuidBase : `${uuidBase}:${zoneName}`
             );
             const homekitAccessory = new this.api.platformAccessory(
                 `${airbase.info.name} ${zoneName || 'Zones'}`,
