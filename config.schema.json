@@ -14,18 +14,25 @@
                 "default": "Daikin Airbase"
             },
             "hostname": {
-                "title": "Host Name",
+                "title": "Host name",
                 "description": "Forces the hostname of the controller, e.g. 192.168.1.10. If not set, the plugin will scan the network to find Airbase devices automatically.",
                 "type": "string",
                 "required": false,
                 "default": ""
             },
             "pollingInterval": {
-                "title": "Polling Interval",
+                "title": "Polling interval",
                 "description": "The polling interval for refreshing the platform's accessories state for automations, in minutes. By detault set to 5 minutes, it can be set to 0 to disable polling.",
                 "type": "integer",
                 "required": false,
                 "default": 5
+            },
+            "useIndividualZoneControls": {
+                "title": "Use individual zone controls",
+                "description": "Defines whether to map each zone switch to an individual accessory when a Daikin Zone Controller is available (true), or to map all zone switches to a single grouped accessory (false, default).",
+                "type": "boolean",
+                "required": false,
+                "default": false
             }
         }
     },
@@ -35,7 +42,11 @@
             "type": "fieldset",
             "expandable": true,
             "title": "Advanced Settings",
-            "items": ["hostname", "pollingInterval"]
+            "items": [
+                "hostname",
+                "pollingInterval",
+                "useIndividualZoneControls"
+            ]
         }
     ]
 }
