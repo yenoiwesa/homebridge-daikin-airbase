@@ -332,10 +332,8 @@ class HeaterCooler extends Service {
     }
 
     async setTargetHeaterCoolerState(value) {
-        const {
-            targetTemperature,
-            modeTargetTemperature,
-        } = await this.airbase.getControlInfo();
+        const { targetTemperature, modeTargetTemperature } =
+            await this.airbase.getControlInfo();
 
         let mode;
 

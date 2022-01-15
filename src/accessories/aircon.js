@@ -50,15 +50,6 @@ class Aircon extends Accessory {
             );
         }
     }
-
-    async doUpdateAllServices({ controlInfo, sensorInfo } = {}) {
-        controlInfo = controlInfo || (await this.airbase.getControlInfo());
-        sensorInfo = sensorInfo || (await this.airbase.getSensorInfo());
-
-        for (const service of this.getServices()) {
-            service.updateState({ controlInfo, sensorInfo });
-        }
-    }
 }
 
 module.exports = Aircon;

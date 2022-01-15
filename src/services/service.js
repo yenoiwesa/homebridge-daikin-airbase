@@ -25,7 +25,7 @@ class Service {
     }
 
     async updateAllServices(values) {
-        return this.accessory.updateAllServices(values);
+        return this.airbase.updateSubscribedServices(values);
     }
 
     // eslint-disable-next-line no-unused-vars
@@ -46,7 +46,7 @@ class Service {
 
         if (!this.airbase) {
             callback('No airbase is associated to this service');
-            this.log.error(
+            this.log.debug(
                 `No airbase is associated to ${this.accessory.name}`
             );
             return;
@@ -76,7 +76,7 @@ class Service {
 
         if (!this.airbase) {
             callback('No airbase is associated to this service');
-            this.log.error(
+            this.log.debug(
                 `No airbase is associated to ${this.accessory.name}`
             );
             return;

@@ -1,4 +1,4 @@
-const { castArray } = require('lodash');
+const { castArray, get } = require('lodash');
 const retry = require('retry');
 const Airbase = require('./airbase-controller');
 const discover = require('./daikin-discovery');
@@ -7,11 +7,8 @@ const ZoneControl = require('./accessories/zone-control');
 
 const PLUGIN_NAME = 'homebridge-daikin-airbase';
 const PLATFORM_NAME = 'DaikinAirbase';
-
-const AccessoriesMap = {
-    [Aircon.name]: { class: Aircon, nameFormat: '#' },
-    [ZoneControl.name]: { class: ZoneControl, nameFormat: '# Zones' },
-};
+const USE_INDIVIDUAL_ZONE_CONTROLS_CONFIG = 'useIndividualZoneControls';
+const USE_INDIVIDUAL_ZONE_CONTROLS_DEFAULT = false;
 
 class DaikinAirbasePlatform {
     constructor(log, config = {}, api) {
@@ -39,12 +36,27 @@ class DaikinAirbasePlatform {
         );
         try {
             const type = homekitAccessory.context.type;
-            const accessory = new AccessoriesMap[type].class({
-                api: this.api,
-                log: this.log,
-                homekitAccessory,
-                config: this.config,
-            });
+            let accessory;
+
+            switch (type) {
+                case Aircon.name:
+                    accessory = new Aircon({
+                        api: this.api,
+                        log: this.log,
+                        homekitAccessory,
+                        config: this.config,
+                    });
+                    break;
+                case ZoneControl.name:
+                    accessory = new ZoneControl({
+                        api: this.api,
+                        log: this.log,
+                        homekitAccessory,
+                        config: this.config,
+                        zoneName: homekitAccessory.context.zoneName,
+                    });
+                    break;
+            }
 
             this.accessories.push(accessory);
         } catch (error) {
@@ -56,6 +68,12 @@ class DaikinAirbasePlatform {
     }
 
     async initAccessories() {
+        const useIndividualZoneControls = get(
+            this.config,
+            USE_INDIVIDUAL_ZONE_CONTROLS_CONFIG,
+            USE_INDIVIDUAL_ZONE_CONTROLS_DEFAULT
+        );
+
         const expectedSSIDs = new Set(
             this.accessories.map((accessory) => accessory.context.airbase.ssid)
         );
@@ -89,19 +107,22 @@ class DaikinAirbasePlatform {
 
                     foundSSIDs.add(airbase.info.ssid);
 
-                    const aircon = this.getOrCreateAccessory(
-                        Aircon.name,
-                        airbase
-                    );
-                    aircon.assignAirbase(airbase);
+                    this.initAircon(airbase);
 
-                    if (airbase.info.zoneNames) {
-                        // add zone control accessory
-                        const zoneControl = this.getOrCreateAccessory(
-                            ZoneControl.name,
-                            airbase
-                        );
-                        zoneControl.assignAirbase(airbase);
+                    const zoneNames = airbase.info.zoneNames;
+                    if (zoneNames) {
+                        if (useIndividualZoneControls) {
+                            // add one zone control accessory per zone
+                            // (one switch per accessory)
+                            for (const zoneName of zoneNames) {
+                                this.initZoneControl(airbase, zoneName);
+                            }
+                        }
+                        // add one zone control accessory for all zones
+                        // (multiple switches in one accessory)
+                        else {
+                            this.initZoneControl(airbase);
+                        }
                     }
 
                     this.log.info(
@@ -135,39 +156,77 @@ class DaikinAirbasePlatform {
         });
     }
 
-    getOrCreateAccessory(type, airbase) {
+    initAircon(airbase) {
         // find the existing accessory if one was restored from cache
-        let accessory = this.accessories.find(
-            (accessory) =>
-                accessory.context.airbase.ssid === airbase.info.ssid &&
-                accessory.context.type === type
+        let aircon = this.accessories.find(
+            ({ context }) =>
+                context.airbase.ssid === airbase.info.ssid &&
+                context.type === Aircon.name
         );
 
         // if none found, create a new one
-        if (!accessory) {
+        if (!aircon) {
             const uuid = this.api.hap.uuid.generate(
-                `${airbase.info.ssid}:${type}`
+                `${airbase.info.ssid}:${Aircon.name}`
             );
             const homekitAccessory = new this.api.platformAccessory(
-                AccessoriesMap[type].nameFormat.replace('#', airbase.info.name),
+                airbase.info.name,
                 uuid
             );
             homekitAccessory.context.airbase = airbase.toContext();
-            accessory = new AccessoriesMap[type].class({
+            aircon = new Aircon({
                 api: this.api,
                 log: this.log,
                 homekitAccessory,
                 config: this.config,
             });
-            this.accessories.push(accessory);
+            this.accessories.push(aircon);
 
             // register the new accessory
             this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [
-                accessory.getHomekitAccessory(),
+                aircon.getHomekitAccessory(),
             ]);
         }
 
-        return accessory;
+        aircon.assignAirbase(airbase);
+    }
+
+    initZoneControl(airbase, zoneName = null) {
+        // find the existing accessory if one was restored from cache
+        let zoneControl = this.accessories.find(
+            ({ context }) =>
+                context.airbase.ssid === airbase.info.ssid &&
+                context.type === ZoneControl.name &&
+                (zoneName == null || context.zoneName === zoneName)
+        );
+
+        // if none found, create a new one
+        if (!zoneControl) {
+            const uuidBase = `${airbase.info.ssid}:${ZoneControl.name}`;
+            const uuid = this.api.hap.uuid.generate(
+                zoneName == null ? uuidBase : `${uuidBase}:${zoneName}`
+            );
+            const homekitAccessory = new this.api.platformAccessory(
+                `${airbase.info.name} ${zoneName || 'Zones'}`,
+                uuid
+            );
+            homekitAccessory.context.airbase = airbase.toContext();
+            zoneControl = new ZoneControl({
+                api: this.api,
+                log: this.log,
+                homekitAccessory,
+                config: this.config,
+                zoneName,
+            });
+            this.accessories.push(zoneControl);
+
+            // register the new accessory
+            this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [
+                zoneControl.getHomekitAccessory(),
+            ]);
+        }
+
+        zoneControl.assignAirbase(airbase);
     }
 }
 
