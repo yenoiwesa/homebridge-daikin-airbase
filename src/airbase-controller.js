@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const { get, isNumber, setWith, forEach, merge, orderBy } = require('lodash');
+const { get, isNumber, setWith, forEach, merge } = require('lodash');
 const debounce = require('debounce-promise');
 const { cachePromise } = require('./utils');
 const { QUERIES_MAPPING, RESPONSES_MAPPING } = require('./constants');
@@ -228,12 +228,7 @@ class DaikinAircon {
 
     async doSetAccumulatedControlInfo(accArgs) {
         const deltas = accArgs.map((args) => args[0]);
-        const prioritisedDeltas = orderBy(
-            deltas,
-            (delta) => delta.priority || 0
-        );
-
-        const values = merge({}, ...prioritisedDeltas);
+        const values = merge({}, ...deltas);
 
         const controlInfo = await this.doSetControlInfo(values);
 
@@ -244,6 +239,17 @@ class DaikinAircon {
         // must send the complete list of values to the controller
         const controlInfo = await this.getControlInfo();
         const newControlInfo = merge({}, controlInfo, values);
+
+        const { mode, modeTargetTemperature } = newControlInfo;
+
+        // if the mode is set to heating or cooling, set the target temperature as the mode temperature for that mode
+        if (
+            (mode === DaikinAircon.Mode.COOL ||
+                mode === DaikinAircon.Mode.HEAT) &&
+            modeTargetTemperature[mode] != null
+        ) {
+            newControlInfo.targetTemperature = modeTargetTemperature[mode];
+        }
 
         await this.sendRequest('aircon/set_control_info', newControlInfo);
 
