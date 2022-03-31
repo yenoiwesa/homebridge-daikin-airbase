@@ -335,7 +335,7 @@ class HeaterCooler extends Service {
         }
 
         if (!mode) {
-            this.log.info(
+            this.log.debug(
                 `Unmapped value for target heater/cooler state, doing nothing: ${value}`
             );
 
