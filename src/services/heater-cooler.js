@@ -301,18 +301,16 @@ class HeaterCooler extends Service {
                 targetHeaterCoolerState =
                     Characteristic.TargetHeaterCoolerState.HEAT;
                 break;
-            case Airbase.Mode.COOL:
-                targetHeaterCoolerState =
-                    Characteristic.TargetHeaterCoolerState.COOL;
-                break;
+
             case Airbase.Mode.AUTO:
                 targetHeaterCoolerState =
                     Characteristic.TargetHeaterCoolerState.AUTO;
                 break;
             case Airbase.Mode.DRY:
             case Airbase.Mode.FAN:
-            default:
-                targetHeaterCoolerState = null;
+            case Airbase.Mode.COOL:
+                targetHeaterCoolerState =
+                    Characteristic.TargetHeaterCoolerState.COOL;
                 break;
         }
 
