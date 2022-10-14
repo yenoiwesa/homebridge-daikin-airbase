@@ -125,6 +125,10 @@ class DaikinAircon {
                 }
             }
         }
+        
+        if (!response) {
+            throw `Request failed after ${RETRY_ATTEMPTS} attempts`;
+        }
 
         if (!response.ok) {
             throw response.status;
