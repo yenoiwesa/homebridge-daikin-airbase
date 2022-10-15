@@ -1,6 +1,6 @@
 {
     "name": "homebridge-daikin-airbase",
-    "version": "3.2.4",
+    "version": "3.2.5",
     "description": "A Homebridge plugin providing support for the Daikin Airbase.",
     "main": "index.js",
     "files": [
@@ -26,7 +26,6 @@
     "devDependencies": {
         "eslint": "^8.3.0",
         "homebridge": "^1.3.8",
-        "ndb": "^1.1.5",
         "prettier": "^2.5.0"
     },
     "engines": {
