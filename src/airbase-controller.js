@@ -125,7 +125,7 @@ class DaikinAircon {
                 }
             }
         }
-        
+
         if (!response) {
             throw `Maximum retry attempts (${RETRY_ATTEMPTS}) reached, bailing out`;
         }
