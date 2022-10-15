@@ -127,7 +127,7 @@ class DaikinAircon {
         }
         
         if (!response) {
-            throw `Request failed after ${RETRY_ATTEMPTS} attempts`;
+            throw `Maximum retry attempts (${RETRY_ATTEMPTS}) reached, bailing out`;
         }
 
         if (!response.ok) {
