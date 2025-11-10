@@ -84,13 +84,14 @@ export default class Fan extends Service {
     }
 
     async getOn(controlInfo?: ControlInfo): Promise<boolean> {
-        const { power } = controlInfo || (await this.airbase.getControlInfo());
+        const { power } =
+            controlInfo || (await this.getAirbase().getControlInfo());
 
         return power === DaikinAircon.Power.ON;
     }
 
     async setOn(value: boolean): Promise<void> {
-        const controlInfo = await this.airbase.setControlInfo({
+        const controlInfo = await this.getAirbase().setControlInfo({
             power: value ? DaikinAircon.Power.ON : DaikinAircon.Power.OFF,
         });
 
@@ -100,7 +101,7 @@ export default class Fan extends Service {
 
     async getRotationSpeed(controlInfo?: ControlInfo): Promise<number> {
         const { power, fanRate } =
-            controlInfo || (await this.airbase.getControlInfo());
+            controlInfo || (await this.getAirbase().getControlInfo());
 
         // make sure to map power off to zero speed
         // otherwise the Home app has display consistency issues
@@ -140,7 +141,7 @@ export default class Fan extends Service {
                 break;
         }
 
-        const controlInfo = await this.airbase.setControlInfo({
+        const controlInfo = await this.getAirbase().setControlInfo({
             fanRate,
         });
 

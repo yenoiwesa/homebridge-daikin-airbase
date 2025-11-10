@@ -54,9 +54,8 @@ export default class ZoneSwitch extends Service {
     }
 
     async getOn(zoneSetting?: ZoneSetting): Promise<boolean> {
-        const power = (zoneSetting || (await this.airbase.getZoneSetting()))[
-            this.zoneName
-        ];
+        const power = (zoneSetting ||
+            (await this.getAirbase().getZoneSetting()))[this.zoneName];
 
         return power === DaikinAircon.Power.ON;
     }
@@ -64,7 +63,7 @@ export default class ZoneSwitch extends Service {
     async setOn(value: boolean): Promise<void> {
         const power = value ? DaikinAircon.Power.ON : DaikinAircon.Power.OFF;
 
-        const zoneSetting = await this.airbase.setZoneSetting({
+        const zoneSetting = await this.getAirbase().setZoneSetting({
             [this.zoneName]: power,
         });
 

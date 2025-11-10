@@ -203,7 +203,7 @@ export default class HeaterCooler extends Service {
 
     async getActive(controlInfo?: ControlInfo): Promise<number> {
         const { power, mode } =
-            controlInfo || (await this.airbase.getControlInfo());
+            controlInfo || (await this.getAirbase().getControlInfo());
 
         // the heater cooler is active only if:
         // - powered
@@ -231,7 +231,7 @@ export default class HeaterCooler extends Service {
                 ? DaikinAircon.Power.ON
                 : DaikinAircon.Power.OFF;
 
-        const controlInfo = await this.airbase.setControlInfo({
+        const controlInfo = await this.getAirbase().setControlInfo({
             power,
         });
 
@@ -309,7 +309,7 @@ export default class HeaterCooler extends Service {
         let currentHeaterCoolerState: number;
 
         const resolvedControlInfo =
-            controlInfo || (await this.airbase.getControlInfo());
+            controlInfo || (await this.getAirbase().getControlInfo());
 
         const active = await this.getActive(resolvedControlInfo);
 
@@ -318,7 +318,7 @@ export default class HeaterCooler extends Service {
                 this.api.hap.Characteristic.CurrentHeaterCoolerState.INACTIVE;
         } else {
             const resolvedSensorInfo =
-                sensorInfo || (await this.airbase.getSensorInfo());
+                sensorInfo || (await this.getAirbase().getSensorInfo());
 
             currentHeaterCoolerState = await this.calculateHeatingCoolingState(
                 resolvedControlInfo,
@@ -334,7 +334,8 @@ export default class HeaterCooler extends Service {
     ): Promise<number> {
         let targetHeaterCoolerState: number;
 
-        const { mode } = controlInfo || (await this.airbase.getControlInfo());
+        const { mode } =
+            controlInfo || (await this.getAirbase().getControlInfo());
 
         switch (mode) {
             case DaikinAircon.Mode.HEAT:
@@ -384,7 +385,7 @@ export default class HeaterCooler extends Service {
             return;
         }
 
-        const controlInfo = await this.airbase.setControlInfo({
+        const controlInfo = await this.getAirbase().setControlInfo({
             mode,
         });
 
@@ -394,7 +395,7 @@ export default class HeaterCooler extends Service {
 
     async getCurrentTemperature(sensorInfo?: SensorInfo): Promise<number> {
         const { indoorTemperature } =
-            sensorInfo || (await this.airbase.getSensorInfo());
+            sensorInfo || (await this.getAirbase().getSensorInfo());
 
         return indoorTemperature;
     }
@@ -403,7 +404,7 @@ export default class HeaterCooler extends Service {
         controlInfo?: ControlInfo
     ): Promise<number> {
         const { targetTemperature, modeTargetTemperature } =
-            controlInfo || (await this.airbase.getControlInfo());
+            controlInfo || (await this.getAirbase().getControlInfo());
 
         return (
             modeTargetTemperature[DaikinAircon.Mode.COOL] || targetTemperature
@@ -414,7 +415,7 @@ export default class HeaterCooler extends Service {
         controlInfo?: ControlInfo
     ): Promise<number> {
         const { targetTemperature, modeTargetTemperature } =
-            controlInfo || (await this.airbase.getControlInfo());
+            controlInfo || (await this.getAirbase().getControlInfo());
 
         return (
             modeTargetTemperature[DaikinAircon.Mode.HEAT] || targetTemperature
@@ -422,7 +423,7 @@ export default class HeaterCooler extends Service {
     }
 
     async setCoolingThresholdTemperature(value: number): Promise<void> {
-        const controlInfo = await this.airbase.setControlInfo({
+        const controlInfo = await this.getAirbase().setControlInfo({
             modeTargetTemperature: {
                 [DaikinAircon.Mode.COOL]: value,
             },
@@ -433,7 +434,7 @@ export default class HeaterCooler extends Service {
     }
 
     async setHeatingThresholdTemperature(value: number): Promise<void> {
-        const controlInfo = await this.airbase.setControlInfo({
+        const controlInfo = await this.getAirbase().setControlInfo({
             modeTargetTemperature: {
                 [DaikinAircon.Mode.HEAT]: value,
             },

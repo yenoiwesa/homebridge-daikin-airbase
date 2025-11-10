@@ -6,11 +6,13 @@ import {
     WithUUID,
 } from 'homebridge';
 import { ServiceDescriptor, UpdateStateParams } from '../types';
+import type DaikinAircon from '../airbase-controller';
+import type Accessory from '../accessories/accessory';
 
-export default class Service {
+export default class Service<TAccessory extends Accessory = Accessory> {
     protected log: Logging;
     protected api: API;
-    protected accessory: any;
+    protected accessory: TAccessory;
     protected service: HAPService;
 
     constructor({
@@ -21,7 +23,7 @@ export default class Service {
     }: {
         api: API;
         log: Logging;
-        accessory: any;
+        accessory: TAccessory;
         descriptor: ServiceDescriptor;
     }) {
         this.api = api;
@@ -49,14 +51,20 @@ export default class Service {
         return service;
     }
 
-    protected get airbase(): any {
+    protected getAirbase(): DaikinAircon {
+        if (!this.accessory.airbase) {
+            throw new Error('No airbase is associated to this service');
+        }
         return this.accessory.airbase;
     }
 
     protected async updateAllServices(
         values: UpdateStateParams
     ): Promise<void> {
-        return this.airbase.updateSubscribedServices(values);
+        if (!this.accessory.airbase) {
+            return;
+        }
+        return this.accessory.airbase.updateSubscribedServices(values);
     }
 
     updateState(_values: UpdateStateParams): void {
@@ -80,7 +88,7 @@ export default class Service {
     ): Promise<void> {
         this.log.debug(`Get ${this.constructor.name} ${state}`);
 
-        if (!this.airbase) {
+        if (!this.accessory.airbase) {
             callback('No airbase is associated to this service');
             this.log.debug(
                 `No airbase is associated to ${this.accessory.name}`
@@ -115,7 +123,7 @@ export default class Service {
             `Set ${this.constructor.name} ${state} with value: ${value}`
         );
 
-        if (!this.airbase) {
+        if (!this.accessory.airbase) {
             callback('No airbase is associated to this service');
             this.log.debug(
                 `No airbase is associated to ${this.accessory.name}`

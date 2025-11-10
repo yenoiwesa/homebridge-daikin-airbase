@@ -50,7 +50,7 @@ export default class DryModeSwitch extends Service {
 
     async getOn(controlInfo?: ControlInfo): Promise<boolean> {
         const { power, mode } =
-            controlInfo || (await this.airbase.getControlInfo());
+            controlInfo || (await this.getAirbase().getControlInfo());
 
         return (
             power === DaikinAircon.Power.ON && mode === DaikinAircon.Mode.DRY
@@ -61,12 +61,12 @@ export default class DryModeSwitch extends Service {
         let controlInfo: ControlInfo;
 
         if (value) {
-            controlInfo = await this.airbase.setControlInfo({
+            controlInfo = await this.getAirbase().setControlInfo({
                 power: DaikinAircon.Power.ON,
                 mode: DaikinAircon.Mode.DRY,
             });
         } else {
-            controlInfo = await this.airbase.setControlInfo({
+            controlInfo = await this.getAirbase().setControlInfo({
                 power: DaikinAircon.Power.OFF,
             });
         }
