@@ -54,9 +54,9 @@ export default class DaikinAircon {
         value: Promise<ControlInfo>
     ) => Promise<ControlInfo>;
     public getSensorInfo: () => Promise<SensorInfo>;
-    private setControlInfoDebounced: (
-        values: Partial<ControlInfo>[]
-    ) => Promise<ControlInfo[]>;
+    public setControlInfo: (
+        values: Partial<ControlInfo>
+    ) => Promise<ControlInfo>;
     private getRawZoneSetting: () => Promise<RawZoneSetting>;
     private setRawZoneSettingCache: (
         value: Promise<RawZoneSetting>
@@ -78,7 +78,7 @@ export default class DaikinAircon {
             GET_SENSOR_INFO_CACHE_DURATION
         ).exec;
 
-        this.setControlInfoDebounced = debounce(
+        this.setControlInfo = debounce(
             this.doSetAccumulatedControlInfo.bind(this),
             SET_CONTROL_INFO_DEBOUNCE_DELAY,
             { accumulate: true }
@@ -205,11 +205,6 @@ export default class DaikinAircon {
 
     private async doGetControlInfo(): Promise<ControlInfo> {
         return this.sendRequest('aircon/get_control_info');
-    }
-
-    async setControlInfo(values: Partial<ControlInfo>): Promise<ControlInfo> {
-        const results = await this.setControlInfoDebounced([values]);
-        return results[0];
     }
 
     private async doSetAccumulatedControlInfo(
