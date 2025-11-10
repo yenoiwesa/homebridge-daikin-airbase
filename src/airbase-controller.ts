@@ -10,7 +10,6 @@ import {
     SensorInfo,
     ZoneSetting,
     RawZoneSetting,
-    UpdateStateParams,
 } from './types';
 
 const RETRY_ATTEMPTS = 3;
@@ -18,10 +17,6 @@ const GET_CONTROL_INFO_CACHE_DURATION = 2 * 1000;
 const GET_SENSOR_INFO_CACHE_DURATION = 30 * 1000;
 const GET_ZONE_SETTING_CACHE_DURATION = 2 * 1000;
 const SET_CONTROL_INFO_DEBOUNCE_DELAY = 500;
-
-interface ServiceWithUpdateState {
-    updateState(values: UpdateStateParams): void;
-}
 
 export default class DaikinAircon {
     static get Power() {
@@ -52,7 +47,6 @@ export default class DaikinAircon {
 
     private log: Logging;
     private hostname: string;
-    private subscribedServices: ServiceWithUpdateState[];
     private info: AirbaseInfo | null = null;
 
     public getControlInfo: () => Promise<ControlInfo>;
@@ -71,7 +65,6 @@ export default class DaikinAircon {
     constructor({ log, hostname }: { log: Logging; hostname: string }) {
         this.log = log;
         this.hostname = hostname;
-        this.subscribedServices = [];
 
         const { exec: getControlInfo, set: setControlInfoCache } = cachePromise(
             this.doGetControlInfo.bind(this),
@@ -208,27 +201,6 @@ export default class DaikinAircon {
             throw new Error('Airbase info not initialized. Call init() first.');
         }
         return this.info;
-    }
-
-    subscribeService(service: ServiceWithUpdateState): void {
-        this.subscribedServices.push(service);
-    }
-
-    async updateSubscribedServices({
-        controlInfo,
-        sensorInfo,
-        zoneSetting,
-    }: UpdateStateParams = {}): Promise<void> {
-        controlInfo = controlInfo || (await this.getControlInfo());
-        sensorInfo = sensorInfo || (await this.getSensorInfo());
-
-        if (this.getInfo().zoneNames) {
-            zoneSetting = zoneSetting || (await this.getZoneSetting());
-        }
-
-        for (const service of this.subscribedServices) {
-            service.updateState({ controlInfo, sensorInfo, zoneSetting });
-        }
     }
 
     private async doGetControlInfo(): Promise<ControlInfo> {
