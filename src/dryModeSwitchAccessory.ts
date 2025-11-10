@@ -15,9 +15,12 @@ export class DryModeSwitchAccessory {
     ) {
         this.airbase = airbase;
 
+        // Get info (throws if not initialized)
+        const info = airbase.getInfo();
+
         // Get or create Switch service for Dry Mode
         const uuid = this.platform.api.hap.uuid.generate(
-            `${airbase.info.ssid}:dry-mode-switch-service`
+            `${info.ssid}:dry-mode-switch-service`
         );
         this.switchService =
             this.accessory.getService(this.platform.Service.Switch) ||

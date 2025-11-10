@@ -16,14 +16,15 @@ export class FanAccessory {
     ) {
         this.airbase = airbase;
 
+        // Get info (throws if not initialized)
+        const info = airbase.getInfo();
+
         // Calculate fan speed steps
-        this.fanSpeedSteps = parseFloat(
-            (100 / airbase.info.fanRateSteps).toFixed(2)
-        );
+        this.fanSpeedSteps = parseFloat((100 / info.fanRateSteps).toFixed(2));
 
         // Get or create Fan service
         const uuid = this.platform.api.hap.uuid.generate(
-            `${airbase.info.ssid}:fan-service`
+            `${info.ssid}:fan-service`
         );
         this.fanService =
             this.accessory.getService(this.platform.Service.Fan) ||

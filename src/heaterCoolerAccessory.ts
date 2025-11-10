@@ -16,6 +16,9 @@ export class HeaterCoolerAccessory {
     ) {
         this.airbase = airbase;
 
+        // Get info (throws if not initialized)
+        const info = airbase.getInfo();
+
         // Set accessory information
         this.informationService =
             this.accessory.getService(
@@ -28,36 +31,33 @@ export class HeaterCoolerAccessory {
         this.informationService
             .setCharacteristic(
                 this.platform.Characteristic.Manufacturer,
-                airbase.info.manufacturer
+                info.manufacturer
             )
-            .setCharacteristic(
-                this.platform.Characteristic.Model,
-                airbase.info.model
-            )
+            .setCharacteristic(this.platform.Characteristic.Model, info.model)
             .setCharacteristic(
                 this.platform.Characteristic.SerialNumber,
-                airbase.info.ssid
+                info.ssid
             )
             .setCharacteristic(
                 this.platform.Characteristic.FirmwareRevision,
-                airbase.info.version
+                info.version
             );
 
         // Get or create HeaterCooler service
         const heaterCoolerUUID = this.platform.api.hap.uuid.generate(
-            `${airbase.info.ssid}:heater-cooler-service`
+            `${info.ssid}:heater-cooler-service`
         );
         this.heaterCoolerService =
             this.accessory.getService(this.platform.Service.HeaterCooler) ||
             this.accessory.addService(
                 this.platform.Service.HeaterCooler,
-                airbase.info.name,
+                info.name,
                 heaterCoolerUUID
             );
 
         this.heaterCoolerService.setCharacteristic(
             this.platform.Characteristic.Name,
-            accessory.context.name || airbase.info.name
+            accessory.context.name || info.name
         );
 
         // Register handlers for characteristics
@@ -88,8 +88,8 @@ export class HeaterCoolerAccessory {
                 this.platform.Characteristic.CoolingThresholdTemperature
             )
             .setProps({
-                minValue: airbase.info.coolMinTemperature,
-                maxValue: airbase.info.coolMaxTempertature,
+                minValue: info.coolMinTemperature,
+                maxValue: info.coolMaxTempertature,
                 minStep: 1,
             })
             .onGet(this.getCoolingThresholdTemperature.bind(this))
@@ -100,8 +100,8 @@ export class HeaterCoolerAccessory {
                 this.platform.Characteristic.HeatingThresholdTemperature
             )
             .setProps({
-                minValue: airbase.info.heatMinTemperature,
-                maxValue: airbase.info.heatMaxTemperature,
+                minValue: info.heatMinTemperature,
+                maxValue: info.heatMaxTemperature,
                 minStep: 1,
             })
             .onGet(this.getHeatingThresholdTemperature.bind(this))

@@ -22,6 +22,10 @@ export class PollingManager {
         private readonly pollingInterval: number = 30000
     ) {}
 
+    private get info() {
+        return this.airbase.getInfo();
+    }
+
     registerAccessory(accessory: AccessoryWithUpdate): void {
         this.accessories.push(accessory);
     }
@@ -32,12 +36,12 @@ export class PollingManager {
         }
 
         if (this.pollingInterval <= 0) {
-            this.log.info(`Polling disabled for ${this.airbase.info.name}`);
+            this.log.info(`Polling disabled for ${this.info.name}`);
             return;
         }
 
         this.log.info(
-            `Starting polling for ${this.airbase.info.name} every ${
+            `Starting polling for ${this.info.name} every ${
                 this.pollingInterval / 1000
             }s`
         );
@@ -48,7 +52,7 @@ export class PollingManager {
                 const sensorInfo = await this.airbase.getSensorInfo();
                 let zoneSetting: ZoneSetting | undefined;
 
-                if (this.airbase.info.zonesSupported) {
+                if (this.info.zonesSupported) {
                     zoneSetting = await this.airbase.getZoneSetting();
                 }
 
@@ -62,7 +66,7 @@ export class PollingManager {
                 }
             } catch (error) {
                 this.log.error(
-                    `Error polling device ${this.airbase.info.name}:`,
+                    `Error polling device ${this.info.name}:`,
                     error
                 );
             }
@@ -73,7 +77,7 @@ export class PollingManager {
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = undefined;
-            this.log.debug(`Stopped polling for ${this.airbase.info.name}`);
+            this.log.debug(`Stopped polling for ${this.info.name}`);
         }
     }
 }

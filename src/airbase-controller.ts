@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { get, isNumber, setWith, forEach, merge } from 'lodash';
+import { setWith, forEach, merge } from 'lodash';
 import debounce from 'debounce-promise';
 import { Logging } from 'homebridge';
 import { cachePromise } from './utils';
@@ -18,8 +18,6 @@ const GET_CONTROL_INFO_CACHE_DURATION = 2 * 1000;
 const GET_SENSOR_INFO_CACHE_DURATION = 30 * 1000;
 const GET_ZONE_SETTING_CACHE_DURATION = 2 * 1000;
 const SET_CONTROL_INFO_DEBOUNCE_DELAY = 500;
-const POLLING_INTERVAL_CONFIG = 'pollingInterval';
-const POLLING_INTERVAL_DEFAULT = 5; // minutes
 
 interface ServiceWithUpdateState {
     updateState(values: UpdateStateParams): void;
@@ -55,9 +53,7 @@ export default class DaikinAircon {
     private log: Logging;
     private hostname: string;
     private subscribedServices: ServiceWithUpdateState[];
-    public info!: AirbaseInfo;
-    public config: any;
-    private pollIntervalId?: NodeJS.Timeout;
+    private info: AirbaseInfo | null = null;
 
     public getControlInfo: () => Promise<ControlInfo>;
     private setControlInfoCache: (
@@ -187,56 +183,30 @@ export default class DaikinAircon {
             this.sendRequest('aircon/get_model_info'),
         ]);
 
-        this.info = {
+        const info: AirbaseInfo = {
             manufacturer: 'Daikin',
             hostname: this.hostname,
             ...basicInfo,
             ...modelInfo,
         };
 
-        if (this.info.zonesSupported && this.info.zoneCount) {
+        if (info.zonesSupported && info.zoneCount) {
             // retrieve zone names
             const { zoneNames } = await this.getRawZoneSetting();
 
             // add zone control accessory
-            this.info.zoneNames = Array.from(
-                new Set(zoneNames.slice(0, this.info.zoneCount))
+            info.zoneNames = Array.from(
+                new Set(zoneNames.slice(0, info.zoneCount))
             );
         }
 
-        this.initPolling();
+        this.info = info;
     }
 
-    private initPolling(): void {
-        const pollingInterval = Math.max(
-            get(this.config, POLLING_INTERVAL_CONFIG, POLLING_INTERVAL_DEFAULT),
-            0
-        );
-
-        if (pollingInterval && isNumber(pollingInterval)) {
-            this.log.info(
-                `Starting polling for ${this.info.name} state every ${pollingInterval} minute(s)`
-            );
-
-            // start polling
-            this.poll(pollingInterval * 60 * 1000);
-        } else {
-            this.log.info(`Polling for ${this.info.name} state disabled`);
+    getInfo(): AirbaseInfo {
+        if (!this.info) {
+            throw new Error('Airbase info not initialized. Call init() first.');
         }
-    }
-
-    private poll(interval: number): void {
-        if (this.pollIntervalId) {
-            clearInterval(this.pollIntervalId);
-        }
-
-        this.pollIntervalId = setInterval(() => {
-            this.log.debug(`Polling for ${this.info.name} state`);
-            this.updateSubscribedServices();
-        }, interval);
-    }
-
-    toContext(): AirbaseInfo {
         return this.info;
     }
 
@@ -252,7 +222,7 @@ export default class DaikinAircon {
         controlInfo = controlInfo || (await this.getControlInfo());
         sensorInfo = sensorInfo || (await this.getSensorInfo());
 
-        if (this.info.zoneNames) {
+        if (this.getInfo().zoneNames) {
             zoneSetting = zoneSetting || (await this.getZoneSetting());
         }
 

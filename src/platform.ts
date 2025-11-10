@@ -72,8 +72,10 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                         log: this.log as unknown as Logging,
                     });
 
-                    airbase.config = this.config;
                     await airbase.init();
+
+                    // Get airbase info (throws if not initialized)
+                    const info = airbase.getInfo();
 
                     // Create polling manager for this airbase
                     const pollingIntervalSeconds =
@@ -87,7 +89,7 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
 
                     // Create main HeaterCooler accessory
                     const mainUuid = this.api.hap.uuid.generate(
-                        `${airbase.info.ssid}:heater-cooler`
+                        `${info.ssid}:heater-cooler`
                     );
                     let mainAccessory = this.accessories.find(
                         (accessory) => accessory.UUID === mainUuid
@@ -103,13 +105,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                     } else {
                         this.log.info(
                             'Adding new HeaterCooler accessory:',
-                            airbase.info.name
+                            info.name
                         );
                         mainAccessory = new this.api.platformAccessory(
-                            airbase.info.name,
+                            info.name,
                             mainUuid
                         );
-                        mainAccessory.context.ssid = airbase.info.ssid;
+                        mainAccessory.context.ssid = info.ssid;
                         mainAccessory.context.hostname = hostname;
                         this.api.registerPlatformAccessories(
                             PLUGIN_NAME,
@@ -126,9 +128,9 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                     pollingManager.registerAccessory(heaterCooler);
 
                     // Create Fan accessory if supported
-                    if (airbase.info.fanRateSupported) {
+                    if (info.fanRateSupported) {
                         const fanUuid = this.api.hap.uuid.generate(
-                            `${airbase.info.ssid}:fan`
+                            `${info.ssid}:fan`
                         );
                         let fanAccessory = this.accessories.find(
                             (accessory) => accessory.UUID === fanUuid
@@ -144,13 +146,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                         } else {
                             this.log.info(
                                 'Adding new Fan accessory:',
-                                `${airbase.info.name} Fan`
+                                `${info.name} Fan`
                             );
                             fanAccessory = new this.api.platformAccessory(
-                                `${airbase.info.name} Fan`,
+                                `${info.name} Fan`,
                                 fanUuid
                             );
-                            fanAccessory.context.ssid = airbase.info.ssid;
+                            fanAccessory.context.ssid = info.ssid;
                             fanAccessory.context.hostname = hostname;
                             this.api.registerPlatformAccessories(
                                 PLUGIN_NAME,
@@ -168,7 +170,7 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
 
                         // Create Fan Mode switch
                         const fanModeUuid = this.api.hap.uuid.generate(
-                            `${airbase.info.ssid}:fan-mode`
+                            `${info.ssid}:fan-mode`
                         );
                         let fanModeAccessory = this.accessories.find(
                             (accessory) => accessory.UUID === fanModeUuid
@@ -186,13 +188,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                         } else {
                             this.log.info(
                                 'Adding new Fan Mode switch:',
-                                `${airbase.info.name} Fan Mode`
+                                `${info.name} Fan Mode`
                             );
                             fanModeAccessory = new this.api.platformAccessory(
-                                `${airbase.info.name} Fan Mode`,
+                                `${info.name} Fan Mode`,
                                 fanModeUuid
                             );
-                            fanModeAccessory.context.ssid = airbase.info.ssid;
+                            fanModeAccessory.context.ssid = info.ssid;
                             fanModeAccessory.context.hostname = hostname;
                             this.api.registerPlatformAccessories(
                                 PLUGIN_NAME,
@@ -210,9 +212,9 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                     }
 
                     // Create Dry Mode switch if supported
-                    if (airbase.info.dryModeSupported) {
+                    if (info.dryModeSupported) {
                         const dryModeUuid = this.api.hap.uuid.generate(
-                            `${airbase.info.ssid}:dry-mode`
+                            `${info.ssid}:dry-mode`
                         );
                         let dryModeAccessory = this.accessories.find(
                             (accessory) => accessory.UUID === dryModeUuid
@@ -230,13 +232,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                         } else {
                             this.log.info(
                                 'Adding new Dry Mode switch:',
-                                `${airbase.info.name} Dry Mode`
+                                `${info.name} Dry Mode`
                             );
                             dryModeAccessory = new this.api.platformAccessory(
-                                `${airbase.info.name} Dry Mode`,
+                                `${info.name} Dry Mode`,
                                 dryModeUuid
                             );
-                            dryModeAccessory.context.ssid = airbase.info.ssid;
+                            dryModeAccessory.context.ssid = info.ssid;
                             dryModeAccessory.context.hostname = hostname;
                             this.api.registerPlatformAccessories(
                                 PLUGIN_NAME,
@@ -254,10 +256,10 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                     }
 
                     // Create zone switch accessories if zones are supported
-                    if (airbase.info.zonesSupported && airbase.info.zoneNames) {
-                        for (const zoneName of airbase.info.zoneNames) {
+                    if (info.zonesSupported && info.zoneNames) {
+                        for (const zoneName of info.zoneNames) {
                             const zoneUuid = this.api.hap.uuid.generate(
-                                `${airbase.info.ssid}:zone-${zoneName}`
+                                `${info.ssid}:zone-${zoneName}`
                             );
                             let zoneAccessory = this.accessories.find(
                                 (accessory) => accessory.UUID === zoneUuid
@@ -275,13 +277,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                             } else {
                                 this.log.info(
                                     'Adding new Zone switch:',
-                                    `${airbase.info.name} ${zoneName}`
+                                    `${info.name} ${zoneName}`
                                 );
                                 zoneAccessory = new this.api.platformAccessory(
-                                    `${airbase.info.name} ${zoneName}`,
+                                    `${info.name} ${zoneName}`,
                                     zoneUuid
                                 );
-                                zoneAccessory.context.ssid = airbase.info.ssid;
+                                zoneAccessory.context.ssid = info.ssid;
                                 zoneAccessory.context.hostname = hostname;
                                 zoneAccessory.context.zoneName = zoneName;
                                 this.api.registerPlatformAccessories(
@@ -305,7 +307,7 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                     pollingManager.start();
 
                     this.log.info(
-                        `Registered device: ${airbase.info.name} (SSID: ${airbase.info.ssid})`
+                        `Registered device: ${info.name} (SSID: ${info.ssid})`
                     );
                 } catch (error) {
                     this.log.error(
