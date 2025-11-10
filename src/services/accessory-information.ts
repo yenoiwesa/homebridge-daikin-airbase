@@ -1,4 +1,4 @@
-import { API, Characteristic } from 'homebridge';
+import { API } from 'homebridge';
 import Service from './service';
 
 export default class AccessoryInformation extends Service {

@@ -35,7 +35,7 @@ export default class Service {
         return this.airbase.updateSubscribedServices(values);
     }
 
-    updateState(values: UpdateStateParams): void {
+    updateState(_values: UpdateStateParams): void {
         // to be implemented in children classes
     }
 

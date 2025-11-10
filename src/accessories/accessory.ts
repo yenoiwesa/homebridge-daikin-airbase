@@ -1,4 +1,4 @@
-import { API, Logging, PlatformAccessory, Service as HAPService } from 'homebridge';
+import { API, Logging, PlatformAccessory } from 'homebridge';
 import AccessoryInformation from '../services/accessory-information';
 import { AccessoryContext } from '../types';
 import DaikinAircon from '../airbase-controller';
