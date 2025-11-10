@@ -9,7 +9,7 @@ export default class Accessory {
     protected accessory: PlatformAccessory<AccessoryContext>;
     protected config: any;
     protected services: any[];
-    public airbase!: DaikinAircon;
+    public airbase?: DaikinAircon;
 
     constructor({ api, log, homekitAccessory, config }: {
         api: API;
