@@ -2,6 +2,7 @@ import { PlatformConfig } from 'homebridge';
 
 export interface DaikinPlatformConfig extends PlatformConfig {
     hostname?: string | string[];
+    pollingInterval?: number;
 }
 
 export interface AirbaseInfo {

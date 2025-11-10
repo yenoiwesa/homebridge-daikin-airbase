@@ -22,10 +22,10 @@
             },
             "pollingInterval": {
                 "title": "Polling interval",
-                "description": "The polling interval for refreshing the platform's accessories state for automations, in minutes. By detault set to 5 minutes, it can be set to 0 to disable polling.",
+                "description": "The polling interval for refreshing the platform's accessories state for automations, in seconds. By default set to 300 seconds (5 minutes), it can be set to 0 to disable polling.",
                 "type": "integer",
                 "required": false,
-                "default": 5
+                "default": 300
             }
         }
     },

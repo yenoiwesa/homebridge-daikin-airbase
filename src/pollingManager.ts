@@ -31,7 +31,12 @@ export class PollingManager {
             return; // Already started
         }
 
-        this.log.debug(
+        if (this.pollingInterval <= 0) {
+            this.log.info(`Polling disabled for ${this.airbase.info.name}`);
+            return;
+        }
+
+        this.log.info(
             `Starting polling for ${this.airbase.info.name} every ${
                 this.pollingInterval / 1000
             }s`

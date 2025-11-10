@@ -76,10 +76,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                     await airbase.init();
 
                     // Create polling manager for this airbase
+                    const pollingIntervalSeconds =
+                        this.config.pollingInterval ?? 300;
+                    const pollingIntervalMs = pollingIntervalSeconds * 1000;
                     const pollingManager = new PollingManager(
                         airbase,
                         this.log,
-                        30000
+                        pollingIntervalMs
                     );
 
                     // Create main HeaterCooler accessory
