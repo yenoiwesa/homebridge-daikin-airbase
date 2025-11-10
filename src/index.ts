@@ -1,6 +1,6 @@
 import type { API } from 'homebridge';
 
-import { DaikinAirbasePlatform } from './daikin-airbase-platform.js';
+import { DaikinAirbasePlatform } from './platform.js';
 import { PLATFORM_NAME } from './settings.js';
 
 /**

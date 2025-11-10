@@ -1,4 +1,4 @@
-import { API, Logging, PlatformAccessory } from 'homebridge';
+import { API, Logging, PlatformAccessory, Service, WithUUID } from 'homebridge';
 
 export interface AirbaseInfo {
     manufacturer: string;
@@ -65,15 +65,8 @@ export interface AccessoryConstructorParams {
     config: any;
 }
 
-export interface ServiceConstructorParams {
-    api: API;
-    log: Logging;
-    accessory: any;
-    zoneName?: string;
-}
-
 export interface ServiceDescriptor {
-    type: any;
+    type: WithUUID<typeof Service>;
     name?: string;
     subType?: string;
 }
