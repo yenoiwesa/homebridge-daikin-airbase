@@ -2,6 +2,7 @@ import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 import { DaikinAirbasePlatform } from './platform';
 import DaikinAircon from './airbase-controller';
 import { ControlInfo } from './types';
+import { UpdateCharacteristicsParams } from './pollingManager';
 
 export class FanModeSwitchAccessory {
     private switchService: Service;
@@ -38,7 +39,7 @@ export class FanModeSwitchAccessory {
             .onSet(this.setOn.bind(this));
     }
 
-    updateCharacteristics(controlInfo: ControlInfo) {
+    updateCharacteristics({ controlInfo }: UpdateCharacteristicsParams) {
         this.switchService.updateCharacteristic(
             this.platform.Characteristic.On,
             this.calculateOn(controlInfo)

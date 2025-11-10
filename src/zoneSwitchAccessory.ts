@@ -2,6 +2,7 @@ import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 import { DaikinAirbasePlatform } from './platform';
 import DaikinAircon from './airbase-controller';
 import { ZoneSetting } from './types';
+import { UpdateCharacteristicsParams } from './pollingManager';
 
 export class ZoneSwitchAccessory {
     private switchService: Service;
@@ -41,11 +42,13 @@ export class ZoneSwitchAccessory {
             .onSet(this.setOn.bind(this));
     }
 
-    updateCharacteristics(zoneSetting: ZoneSetting) {
-        this.switchService.updateCharacteristic(
-            this.platform.Characteristic.On,
-            this.calculateOn(zoneSetting)
-        );
+    updateCharacteristics({ zoneSetting }: UpdateCharacteristicsParams) {
+        if (zoneSetting) {
+            this.switchService.updateCharacteristic(
+                this.platform.Characteristic.On,
+                this.calculateOn(zoneSetting)
+            );
+        }
     }
 
     async getOn(): Promise<CharacteristicValue> {

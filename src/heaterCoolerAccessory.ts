@@ -2,6 +2,7 @@ import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 import { DaikinAirbasePlatform } from './platform';
 import DaikinAircon from './airbase-controller';
 import { ControlInfo, SensorInfo } from './types';
+import { UpdateCharacteristicsParams } from './pollingManager';
 
 export class HeaterCoolerAccessory {
     private heaterCoolerService: Service;
@@ -105,27 +106,9 @@ export class HeaterCoolerAccessory {
             })
             .onGet(this.getHeatingThresholdTemperature.bind(this))
             .onSet(this.setHeatingThresholdTemperature.bind(this));
-
-        // Start polling for updates
-        this.startPolling();
     }
 
-    private startPolling() {
-        setInterval(async () => {
-            try {
-                const controlInfo = await this.airbase.getControlInfo();
-                const sensorInfo = await this.airbase.getSensorInfo();
-                this.updateCharacteristics(controlInfo, sensorInfo);
-            } catch (error) {
-                this.platform.log.error('Error polling device:', error);
-            }
-        }, 30000); // Poll every 30 seconds
-    }
-
-    private updateCharacteristics(
-        controlInfo: ControlInfo,
-        sensorInfo: SensorInfo
-    ) {
+    updateCharacteristics({ controlInfo, sensorInfo }: UpdateCharacteristicsParams) {
         this.heaterCoolerService.updateCharacteristic(
             this.platform.Characteristic.Active,
             this.calculateActive(controlInfo)

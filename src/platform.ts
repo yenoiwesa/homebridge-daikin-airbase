@@ -14,6 +14,7 @@ import { FanAccessory } from './fanAccessory';
 import { FanModeSwitchAccessory } from './fanModeSwitchAccessory';
 import { DryModeSwitchAccessory } from './dryModeSwitchAccessory';
 import { ZoneSwitchAccessory } from './zoneSwitchAccessory';
+import { PollingManager } from './pollingManager';
 import DaikinAircon from './airbase-controller';
 import discover from './daikin-discovery';
 import { castArray } from 'lodash';
@@ -84,6 +85,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                     airbase.config = this.config;
                     await airbase.init();
 
+                    // Create polling manager for this airbase
+                    const pollingManager = new PollingManager(
+                        airbase,
+                        this.log,
+                        30000
+                    );
+
                     // Create main HeaterCooler accessory
                     const mainUuid = this.api.hap.uuid.generate(
                         `${airbase.info.ssid}:heater-cooler`
@@ -117,7 +125,12 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                         );
                     }
 
-                    new HeaterCoolerAccessory(this, mainAccessory, airbase);
+                    const heaterCooler = new HeaterCoolerAccessory(
+                        this,
+                        mainAccessory,
+                        airbase
+                    );
+                    pollingManager.registerAccessory(heaterCooler);
 
                     // Create Fan accessory if supported
                     if (airbase.info.fanRateSupported) {
@@ -153,7 +166,12 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                             );
                         }
 
-                        new FanAccessory(this, fanAccessory, airbase);
+                        const fan = new FanAccessory(
+                            this,
+                            fanAccessory,
+                            airbase
+                        );
+                        pollingManager.registerAccessory(fan);
 
                         // Create Fan Mode switch
                         const fanModeUuid = this.api.hap.uuid.generate(
@@ -190,11 +208,12 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                             );
                         }
 
-                        new FanModeSwitchAccessory(
+                        const fanModeSwitch = new FanModeSwitchAccessory(
                             this,
                             fanModeAccessory,
                             airbase
                         );
+                        pollingManager.registerAccessory(fanModeSwitch);
                     }
 
                     // Create Dry Mode switch if supported
@@ -233,11 +252,12 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                             );
                         }
 
-                        new DryModeSwitchAccessory(
+                        const dryModeSwitch = new DryModeSwitchAccessory(
                             this,
                             dryModeAccessory,
                             airbase
                         );
+                        pollingManager.registerAccessory(dryModeSwitch);
                     }
 
                     // Create zone switch accessories if zones are supported
@@ -278,14 +298,18 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                                 );
                             }
 
-                            new ZoneSwitchAccessory(
+                            const zoneSwitch = new ZoneSwitchAccessory(
                                 this,
                                 zoneAccessory,
                                 airbase,
                                 zoneName
                             );
+                            pollingManager.registerAccessory(zoneSwitch);
                         }
                     }
+
+                    // Start polling for this airbase
+                    pollingManager.start();
 
                     this.log.info(
                         `Registered device: ${airbase.info.name} (SSID: ${airbase.info.ssid})`
