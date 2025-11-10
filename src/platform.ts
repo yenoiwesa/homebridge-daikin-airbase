@@ -65,6 +65,9 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                 }
             }
 
+            // Determine if we need to prefix accessory names with airbase name
+            const usePrefix = hostnames.length > 1;
+
             for (const hostname of hostnames) {
                 try {
                     const airbase = new DaikinAircon({
@@ -76,6 +79,9 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
 
                     // Get airbase info (throws if not initialized)
                     const info = airbase.getInfo();
+
+                    // Determine name prefix for accessories
+                    const prefix = usePrefix ? `${info.name} ` : '';
 
                     // Create polling manager for this airbase
                     const pollingIntervalSeconds =
@@ -103,12 +109,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                         mainAccessory.context.hostname = hostname;
                         this.api.updatePlatformAccessories([mainAccessory]);
                     } else {
+                        const displayName = `${prefix}Aircon`;
                         this.log.info(
                             'Adding new HeaterCooler accessory:',
-                            info.name
+                            displayName
                         );
                         mainAccessory = new this.api.platformAccessory(
-                            info.name,
+                            displayName,
                             mainUuid
                         );
                         mainAccessory.context.ssid = info.ssid;
@@ -144,12 +151,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                             fanAccessory.context.hostname = hostname;
                             this.api.updatePlatformAccessories([fanAccessory]);
                         } else {
+                            const displayName = `${prefix}Fan Speed`;
                             this.log.info(
                                 'Adding new Fan accessory:',
-                                `${info.name} Fan`
+                                displayName
                             );
                             fanAccessory = new this.api.platformAccessory(
-                                `${info.name} Fan`,
+                                displayName,
                                 fanUuid
                             );
                             fanAccessory.context.ssid = info.ssid;
@@ -186,12 +194,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                                 fanModeAccessory,
                             ]);
                         } else {
+                            const displayName = `${prefix}Fan Mode`;
                             this.log.info(
                                 'Adding new Fan Mode switch:',
-                                `${info.name} Fan Mode`
+                                displayName
                             );
                             fanModeAccessory = new this.api.platformAccessory(
-                                `${info.name} Fan Mode`,
+                                displayName,
                                 fanModeUuid
                             );
                             fanModeAccessory.context.ssid = info.ssid;
@@ -230,12 +239,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                                 dryModeAccessory,
                             ]);
                         } else {
+                            const displayName = `${prefix}Dry Mode`;
                             this.log.info(
                                 'Adding new Dry Mode switch:',
-                                `${info.name} Dry Mode`
+                                displayName
                             );
                             dryModeAccessory = new this.api.platformAccessory(
-                                `${info.name} Dry Mode`,
+                                displayName,
                                 dryModeUuid
                             );
                             dryModeAccessory.context.ssid = info.ssid;
@@ -275,12 +285,13 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                                     zoneAccessory,
                                 ]);
                             } else {
+                                const displayName = `${prefix}${zoneName} Zone`;
                                 this.log.info(
                                     'Adding new Zone switch:',
-                                    `${info.name} ${zoneName}`
+                                    displayName
                                 );
                                 zoneAccessory = new this.api.platformAccessory(
-                                    `${info.name} ${zoneName}`,
+                                    displayName,
                                     zoneUuid
                                 );
                                 zoneAccessory.context.ssid = info.ssid;
