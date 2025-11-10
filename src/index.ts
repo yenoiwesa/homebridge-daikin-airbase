@@ -1,10 +1,11 @@
-import { API } from 'homebridge';
-import {
-    PLUGIN_NAME,
-    PLATFORM_NAME,
-    DaikinAirbasePlatform,
-} from './daikin-airbase-platform';
+import type { API } from 'homebridge';
 
-export default (api: API): void => {
-    api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, DaikinAirbasePlatform);
+import { DaikinAirbasePlatform } from './daikin-airbase-platform.js';
+import { PLATFORM_NAME } from './settings.js';
+
+/**
+ * This method registers the platform with Homebridge
+ */
+export default (api: API) => {
+    api.registerPlatform(PLATFORM_NAME, DaikinAirbasePlatform);
 };

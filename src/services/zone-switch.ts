@@ -9,7 +9,17 @@ export default class ZoneSwitch extends Service {
     private on: Characteristic;
     private zoneName: string;
 
-    constructor({ api, log, accessory, zoneName }: { api: API; log: any; accessory: any; zoneName: string }) {
+    constructor({
+        api,
+        log,
+        accessory,
+        zoneName,
+    }: {
+        api: API;
+        log: any;
+        accessory: any;
+        zoneName: string;
+    }) {
         super({
             log,
             accessory,

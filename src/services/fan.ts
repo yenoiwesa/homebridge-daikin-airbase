@@ -10,7 +10,15 @@ export default class Fan extends Service {
     private rotationSpeed: Characteristic;
     private fanSpeedSteps: number;
 
-    constructor({ api, log, accessory }: { api: API; log: any; accessory: any }) {
+    constructor({
+        api,
+        log,
+        accessory,
+    }: {
+        api: API;
+        log: any;
+        accessory: any;
+    }) {
         super({
             log,
             accessory,

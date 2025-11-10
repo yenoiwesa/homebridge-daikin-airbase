@@ -58,13 +58,19 @@ export default class DaikinAircon {
     public info!: AirbaseInfo;
     public config: any;
     private pollIntervalId?: NodeJS.Timeout;
-    
+
     private getControlInfo: () => Promise<ControlInfo>;
-    private setControlInfoCache: (value: Promise<ControlInfo>) => Promise<ControlInfo>;
+    private setControlInfoCache: (
+        value: Promise<ControlInfo>
+    ) => Promise<ControlInfo>;
     private getSensorInfo: () => Promise<SensorInfo>;
-    private setControlInfo: (values: Partial<ControlInfo>[]) => Promise<ControlInfo[]>;
+    private setControlInfo: (
+        values: Partial<ControlInfo>[]
+    ) => Promise<ControlInfo[]>;
     private getRawZoneSetting: () => Promise<RawZoneSetting>;
-    private setRawZoneSettingCache: (value: Promise<RawZoneSetting>) => Promise<RawZoneSetting>;
+    private setRawZoneSettingCache: (
+        value: Promise<RawZoneSetting>
+    ) => Promise<RawZoneSetting>;
 
     constructor({ log, hostname }: { log: Logging; hostname: string }) {
         this.log = log;
@@ -154,7 +160,9 @@ export default class DaikinAircon {
         }
 
         if (!response) {
-            throw new Error(`Maximum retry attempts (${RETRY_ATTEMPTS}) reached, bailing out`);
+            throw new Error(
+                `Maximum retry attempts (${RETRY_ATTEMPTS}) reached, bailing out`
+            );
         }
 
         if (!response.ok) {
@@ -257,7 +265,9 @@ export default class DaikinAircon {
         return this.sendRequest('aircon/get_control_info');
     }
 
-    private async doSetAccumulatedControlInfo(accArgs: [Partial<ControlInfo>][]): Promise<ControlInfo[]> {
+    private async doSetAccumulatedControlInfo(
+        accArgs: [Partial<ControlInfo>][]
+    ): Promise<ControlInfo[]> {
         const deltas = accArgs.map((args) => args[0]);
         const values = merge({}, ...deltas);
 
@@ -266,7 +276,9 @@ export default class DaikinAircon {
         return new Array(accArgs.length).fill(controlInfo);
     }
 
-    private async doSetControlInfo(values: Partial<ControlInfo>): Promise<ControlInfo> {
+    private async doSetControlInfo(
+        values: Partial<ControlInfo>
+    ): Promise<ControlInfo> {
         // must send the complete list of values to the controller
         const controlInfo = await this.getControlInfo();
         const newControlInfo = merge({}, controlInfo, values);
@@ -297,7 +309,9 @@ export default class DaikinAircon {
         return this.sendRequest('aircon/get_zone_setting');
     }
 
-    async getZoneSetting(rawZoneSetting?: RawZoneSetting): Promise<ZoneSetting> {
+    async getZoneSetting(
+        rawZoneSetting?: RawZoneSetting
+    ): Promise<ZoneSetting> {
         const { zoneNames, zoneStatuses } =
             rawZoneSetting || (await this.getRawZoneSetting());
 

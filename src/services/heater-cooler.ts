@@ -15,7 +15,15 @@ export default class HeaterCooler extends Service {
     private heatingThresholdTemperature: Characteristic;
     private temperatureDisplayUnits: Characteristic;
 
-    constructor({ api, log, accessory }: { api: API; log: any; accessory: any }) {
+    constructor({
+        api,
+        log,
+        accessory,
+    }: {
+        api: API;
+        log: any;
+        accessory: any;
+    }) {
         super({
             log,
             accessory,
@@ -160,16 +168,24 @@ export default class HeaterCooler extends Service {
             CharacteristicType.TemperatureDisplayUnits
         )
             .setProps({
-                validValues: [CharacteristicType.TemperatureDisplayUnits.CELSIUS],
+                validValues: [
+                    CharacteristicType.TemperatureDisplayUnits.CELSIUS,
+                ],
             })
             .updateValue(CharacteristicType.TemperatureDisplayUnits.CELSIUS);
     }
 
-    async updateState({ controlInfo, sensorInfo }: UpdateStateParams): Promise<void> {
+    async updateState({
+        controlInfo,
+        sensorInfo,
+    }: UpdateStateParams): Promise<void> {
         if (controlInfo && sensorInfo) {
             this.active.updateValue(await this.getActive(controlInfo));
             this.currentHeaterCoolerState.updateValue(
-                await this.getCurrentHeaterCoolerState({ controlInfo, sensorInfo })
+                await this.getCurrentHeaterCoolerState({
+                    controlInfo,
+                    sensorInfo,
+                })
             );
             this.targetHeaterCoolerState.updateValue(
                 await this.getTargetHeaterCoolerState(controlInfo)
@@ -224,11 +240,15 @@ export default class HeaterCooler extends Service {
         this.updateAllServices({ controlInfo });
     }
 
-    async calculateHeatingCoolingState(controlInfo: ControlInfo, sensorInfo: SensorInfo): Promise<number> {
+    async calculateHeatingCoolingState(
+        controlInfo: ControlInfo,
+        sensorInfo: SensorInfo
+    ): Promise<number> {
         const { mode, targetTemperature, modeTargetTemperature } = controlInfo;
         const { indoorTemperature } = sensorInfo;
 
-        let currentHeaterCoolerState: number = CharacteristicType.CurrentHeaterCoolerState.IDLE;
+        let currentHeaterCoolerState: number =
+            CharacteristicType.CurrentHeaterCoolerState.IDLE;
 
         const setHeating = () => {
             const heatingTarget = get(
@@ -281,10 +301,14 @@ export default class HeaterCooler extends Service {
         return currentHeaterCoolerState;
     }
 
-    async getCurrentHeaterCoolerState({ controlInfo, sensorInfo }: Partial<UpdateStateParams> = {}): Promise<number> {
+    async getCurrentHeaterCoolerState({
+        controlInfo,
+        sensorInfo,
+    }: Partial<UpdateStateParams> = {}): Promise<number> {
         let currentHeaterCoolerState: number;
 
-        const resolvedControlInfo = controlInfo || (await this.airbase.getControlInfo());
+        const resolvedControlInfo =
+            controlInfo || (await this.airbase.getControlInfo());
 
         const active = await this.getActive(resolvedControlInfo);
 
@@ -292,7 +316,8 @@ export default class HeaterCooler extends Service {
             currentHeaterCoolerState =
                 CharacteristicType.CurrentHeaterCoolerState.INACTIVE;
         } else {
-            const resolvedSensorInfo = sensorInfo || (await this.airbase.getSensorInfo());
+            const resolvedSensorInfo =
+                sensorInfo || (await this.airbase.getSensorInfo());
 
             currentHeaterCoolerState = await this.calculateHeatingCoolingState(
                 resolvedControlInfo,
@@ -303,7 +328,9 @@ export default class HeaterCooler extends Service {
         return currentHeaterCoolerState;
     }
 
-    async getTargetHeaterCoolerState(controlInfo?: ControlInfo): Promise<number> {
+    async getTargetHeaterCoolerState(
+        controlInfo?: ControlInfo
+    ): Promise<number> {
         let targetHeaterCoolerState: number;
 
         const { mode } = controlInfo || (await this.airbase.getControlInfo());
@@ -371,18 +398,26 @@ export default class HeaterCooler extends Service {
         return indoorTemperature;
     }
 
-    async getCoolingThresholdTemperature(controlInfo?: ControlInfo): Promise<number> {
+    async getCoolingThresholdTemperature(
+        controlInfo?: ControlInfo
+    ): Promise<number> {
         const { targetTemperature, modeTargetTemperature } =
             controlInfo || (await this.airbase.getControlInfo());
 
-        return modeTargetTemperature[DaikinAircon.Mode.COOL] || targetTemperature;
+        return (
+            modeTargetTemperature[DaikinAircon.Mode.COOL] || targetTemperature
+        );
     }
 
-    async getHeatingThresholdTemperature(controlInfo?: ControlInfo): Promise<number> {
+    async getHeatingThresholdTemperature(
+        controlInfo?: ControlInfo
+    ): Promise<number> {
         const { targetTemperature, modeTargetTemperature } =
             controlInfo || (await this.airbase.getControlInfo());
 
-        return modeTargetTemperature[DaikinAircon.Mode.HEAT] || targetTemperature;
+        return (
+            modeTargetTemperature[DaikinAircon.Mode.HEAT] || targetTemperature
+        );
     }
 
     async setCoolingThresholdTemperature(value: number): Promise<void> {

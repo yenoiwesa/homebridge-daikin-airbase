@@ -35,10 +35,7 @@
             "type": "fieldset",
             "expandable": true,
             "title": "Advanced Settings",
-            "items": [
-                "hostname",
-                "pollingInterval"
-            ]
+            "items": ["hostname", "pollingInterval"]
         }
     ]
 }

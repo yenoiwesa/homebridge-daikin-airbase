@@ -1,4 +1,9 @@
-import { Logging, Service as HAPService, Characteristic as HAPCharacteristic, WithUUID } from 'homebridge';
+import {
+    Logging,
+    Service as HAPService,
+    Characteristic as HAPCharacteristic,
+    WithUUID,
+} from 'homebridge';
 import { ServiceDescriptor, UpdateStateParams } from '../types';
 
 export default class Service {
@@ -6,13 +11,25 @@ export default class Service {
     protected accessory: any;
     protected service: HAPService;
 
-    constructor({ log, accessory, descriptor }: { log: Logging; accessory: any; descriptor: ServiceDescriptor }) {
+    constructor({
+        log,
+        accessory,
+        descriptor,
+    }: {
+        log: Logging;
+        accessory: any;
+        descriptor: ServiceDescriptor;
+    }) {
         this.log = log;
         this.accessory = accessory;
         this.service = this.getOrCreateHomekitService(descriptor);
     }
 
-    protected getOrCreateHomekitService({ type, name, subType }: ServiceDescriptor): HAPService {
+    protected getOrCreateHomekitService({
+        type,
+        name,
+        subType,
+    }: ServiceDescriptor): HAPService {
         const homekitAccessory = this.accessory.getHomekitAccessory();
 
         // get the service from the accessory if it exists
@@ -31,7 +48,9 @@ export default class Service {
         return this.accessory.airbase;
     }
 
-    protected async updateAllServices(values: UpdateStateParams): Promise<void> {
+    protected async updateAllServices(
+        values: UpdateStateParams
+    ): Promise<void> {
         return this.airbase.updateSubscribedServices(values);
     }
 
@@ -43,7 +62,9 @@ export default class Service {
         return this.service;
     }
 
-    protected getCharacteristic(characteristic: WithUUID<new () => HAPCharacteristic>): HAPCharacteristic {
+    protected getCharacteristic(
+        characteristic: WithUUID<new () => HAPCharacteristic>
+    ): HAPCharacteristic {
         return this.service.getCharacteristic(characteristic);
     }
 
@@ -56,17 +77,24 @@ export default class Service {
 
         if (!this.airbase) {
             callback('No airbase is associated to this service');
-            this.log.debug(`No airbase is associated to ${this.accessory.name}`);
+            this.log.debug(
+                `No airbase is associated to ${this.accessory.name}`
+            );
             return;
         }
 
         try {
             const value = await getStateFn();
 
-            this.log.debug(`Get ${this.constructor.name} ${state} success: ${value}`);
+            this.log.debug(
+                `Get ${this.constructor.name} ${state} success: ${value}`
+            );
             callback(null, value);
         } catch (error) {
-            this.log.error(`Could not fetch ${this.constructor.name} ${state}`, error);
+            this.log.error(
+                `Could not fetch ${this.constructor.name} ${state}`,
+                error
+            );
 
             callback(error);
         }
@@ -78,21 +106,30 @@ export default class Service {
         setStateFn: (value: any) => Promise<void>,
         callback: (error?: any) => void
     ): Promise<void> {
-        this.log.debug(`Set ${this.constructor.name} ${state} with value: ${value}`);
+        this.log.debug(
+            `Set ${this.constructor.name} ${state} with value: ${value}`
+        );
 
         if (!this.airbase) {
             callback('No airbase is associated to this service');
-            this.log.debug(`No airbase is associated to ${this.accessory.name}`);
+            this.log.debug(
+                `No airbase is associated to ${this.accessory.name}`
+            );
             return;
         }
 
         try {
             await setStateFn(value);
 
-            this.log.debug(`Set ${this.constructor.name} ${state} success: ${value}`);
+            this.log.debug(
+                `Set ${this.constructor.name} ${state} success: ${value}`
+            );
             callback();
         } catch (error) {
-            this.log.error(`Could not set ${this.constructor.name} ${state}`, error);
+            this.log.error(
+                `Could not set ${this.constructor.name} ${state}`,
+                error
+            );
 
             callback(error);
         }

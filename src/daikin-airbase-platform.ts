@@ -5,10 +5,8 @@ import DaikinAircon from './airbase-controller';
 import discover from './daikin-discovery';
 import Aircon from './accessories/aircon';
 import ZoneControl from './accessories/zone-control';
+import { PLUGIN_NAME, PLATFORM_NAME } from './settings';
 import { AccessoryContext } from './types';
-
-export const PLUGIN_NAME = 'homebridge-daikin-airbase';
-export const PLATFORM_NAME = 'DaikinAirbase';
 
 export class DaikinAirbasePlatform {
     private log: Logging;
@@ -35,7 +33,9 @@ export class DaikinAirbasePlatform {
      * Homebridge will call the "configureAccessory" method once for every cached
      * accessory restored
      */
-    configureAccessory(homekitAccessory: PlatformAccessory<AccessoryContext>): void {
+    configureAccessory(
+        homekitAccessory: PlatformAccessory<AccessoryContext>
+    ): void {
         this.log.info(
             `Restoring cached accessory ${homekitAccessory.displayName}`
         );
@@ -166,10 +166,11 @@ export class DaikinAirbasePlatform {
             const uuid = this.api.hap.uuid.generate(
                 `${airbase.info.ssid}:${Aircon.name}`
             );
-            const homekitAccessory = new this.api.platformAccessory<AccessoryContext>(
-                airbase.info.name,
-                uuid
-            );
+            const homekitAccessory =
+                new this.api.platformAccessory<AccessoryContext>(
+                    airbase.info.name,
+                    uuid
+                );
             homekitAccessory.context = {
                 airbase: airbase.toContext(),
                 type: Aircon.name,
@@ -191,7 +192,10 @@ export class DaikinAirbasePlatform {
         aircon.assignAirbase(airbase);
     }
 
-    private initZoneControl(airbase: DaikinAircon, zoneName: string | null = null): void {
+    private initZoneControl(
+        airbase: DaikinAircon,
+        zoneName: string | null = null
+    ): void {
         // find the existing accessory if one was restored from cache
         let zoneControl = this.accessories.find(
             ({ context }) =>
@@ -206,10 +210,11 @@ export class DaikinAirbasePlatform {
             const uuid = this.api.hap.uuid.generate(
                 zoneName == null ? uuidBase : `${uuidBase}:${zoneName}`
             );
-            const homekitAccessory = new this.api.platformAccessory<AccessoryContext>(
-                `${airbase.info.name} ${zoneName || 'Zones'}`,
-                uuid
-            );
+            const homekitAccessory =
+                new this.api.platformAccessory<AccessoryContext>(
+                    `${airbase.info.name} ${zoneName || 'Zones'}`,
+                    uuid
+                );
             homekitAccessory.context = {
                 airbase: airbase.toContext(),
                 type: ZoneControl.name,

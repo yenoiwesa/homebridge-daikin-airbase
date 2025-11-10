@@ -4,7 +4,13 @@ import Accessory from './accessory';
 import { AccessoryContext } from '../types';
 
 export default class ZoneControl extends Accessory {
-    constructor({ api, log, homekitAccessory, config, zoneName = null }: {
+    constructor({
+        api,
+        log,
+        homekitAccessory,
+        config,
+        zoneName = null,
+    }: {
         api: API;
         log: Logging;
         homekitAccessory: PlatformAccessory<AccessoryContext>;

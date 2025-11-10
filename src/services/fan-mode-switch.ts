@@ -8,7 +8,15 @@ let CharacteristicType: typeof Characteristic;
 export default class FanModeSwitch extends Service {
     private on: Characteristic;
 
-    constructor({ api, log, accessory }: { api: API; log: any; accessory: any }) {
+    constructor({
+        api,
+        log,
+        accessory,
+    }: {
+        api: API;
+        log: any;
+        accessory: any;
+    }) {
         super({
             log,
             accessory,
@@ -47,7 +55,9 @@ export default class FanModeSwitch extends Service {
         const { power, mode } =
             controlInfo || (await this.airbase.getControlInfo());
 
-        return power === DaikinAircon.Power.ON && mode === DaikinAircon.Mode.FAN;
+        return (
+            power === DaikinAircon.Power.ON && mode === DaikinAircon.Mode.FAN
+        );
     }
 
     async setOn(value: boolean): Promise<void> {

@@ -1,7 +1,11 @@
 export const cachePromise = <T>(
     promiseCallback: () => Promise<T>,
     cacheDuration: number
-): { exec: () => Promise<T>; reset: () => void; set: (value: Promise<T>) => Promise<T> } => {
+): {
+    exec: () => Promise<T>;
+    reset: () => void;
+    set: (value: Promise<T>) => Promise<T>;
+} => {
     let promise: Promise<T> | null = null;
     let timeoutId: NodeJS.Timeout | null = null;
 

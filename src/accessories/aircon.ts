@@ -8,7 +8,12 @@ import Accessory from './accessory';
 import { AccessoryContext } from '../types';
 
 export default class Aircon extends Accessory {
-    constructor({ api, log, homekitAccessory, config }: {
+    constructor({
+        api,
+        log,
+        homekitAccessory,
+        config,
+    }: {
         api: API;
         log: Logging;
         homekitAccessory: PlatformAccessory<AccessoryContext>;
