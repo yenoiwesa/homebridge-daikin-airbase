@@ -1,0 +1,85 @@
+import { API, Logging, PlatformAccessory } from 'homebridge';
+
+export interface AirbaseInfo {
+    manufacturer: string;
+    hostname: string;
+    name: string;
+    version: string;
+    ssid: string;
+    zonesSupported: boolean;
+    model: string;
+    type: string;
+    isHumidifierSupported: boolean;
+    zoneCount?: number;
+    setTemperatureSupported: boolean;
+    fanRateSupported: boolean;
+    fanDirectionSupported: boolean;
+    autoModeSupported: boolean;
+    dryModeSupported: boolean;
+    coolMinTemperature: number;
+    coolMaxTempertature: number;
+    heatMinTemperature: number;
+    heatMaxTemperature: number;
+    fanRateSteps: number;
+    autoFanRateSupported: boolean;
+    zoneNames?: string[];
+}
+
+export interface ControlInfo {
+    power: number;
+    mode: number;
+    targetTemperature: number;
+    fanRate: number;
+    fanAirside: number;
+    fanAuto: number;
+    fanDirection: number;
+    modeTargetTemperature: {
+        [mode: number]: number;
+    };
+}
+
+export interface SensorInfo {
+    indoorTemperature: number;
+    outdoorTemperature: number;
+}
+
+export interface ZoneSetting {
+    [zoneName: string]: number;
+}
+
+export interface RawZoneSetting {
+    zoneNames: string[];
+    zoneStatuses: number[];
+}
+
+export interface AccessoryContext {
+    airbase: AirbaseInfo;
+    type: string;
+    zoneName?: string;
+}
+
+export interface AccessoryConstructorParams {
+    api: API;
+    log: Logging;
+    homekitAccessory: PlatformAccessory<AccessoryContext>;
+    config: any;
+}
+
+export interface ServiceConstructorParams {
+    api: API;
+    log: Logging;
+    accessory: any;
+    zoneName?: string;
+}
+
+export interface ServiceDescriptor {
+    type: any;
+    name?: string;
+    subType?: string;
+}
+
+export interface UpdateStateParams {
+    controlInfo?: ControlInfo;
+    sensorInfo?: SensorInfo;
+    zoneSetting?: ZoneSetting;
+}

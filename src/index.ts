@@ -1,9 +1,10 @@
-const {
+import { API } from 'homebridge';
+import {
     PLUGIN_NAME,
     PLATFORM_NAME,
     DaikinAirbasePlatform,
-} = require('./daikin-airbase-platform');
+} from './daikin-airbase-platform';
 
-module.exports = (api) => {
+export default (api: API): void => {
     api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, DaikinAirbasePlatform);
 };

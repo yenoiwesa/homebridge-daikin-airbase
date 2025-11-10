@@ -1,12 +1,19 @@
-const { get } = require('lodash');
-const HeaterCooler = require('../services/heater-cooler');
-const Fan = require('../services/fan');
-const FanModeSwitch = require('../services/fan-mode-switch');
-const DryModeSwitch = require('../services/dry-mode-switch');
-const Accessory = require('./accessory');
+import { API, Logging, PlatformAccessory } from 'homebridge';
+import { get } from 'lodash';
+import HeaterCooler from '../services/heater-cooler';
+import Fan from '../services/fan';
+import FanModeSwitch from '../services/fan-mode-switch';
+import DryModeSwitch from '../services/dry-mode-switch';
+import Accessory from './accessory';
+import { AccessoryContext } from '../types';
 
-class Aircon extends Accessory {
-    constructor({ api, log, homekitAccessory, config }) {
+export default class Aircon extends Accessory {
+    constructor({ api, log, homekitAccessory, config }: {
+        api: API;
+        log: Logging;
+        homekitAccessory: PlatformAccessory<AccessoryContext>;
+        config: any;
+    }) {
         super({ api, log, homekitAccessory, config });
 
         this.addService(
@@ -51,5 +58,3 @@ class Aircon extends Accessory {
         }
     }
 }
-
-module.exports = Aircon;

@@ -1,7 +1,22 @@
-const AccessoryInformation = require('../services/accessory-information');
+import { API, Logging, PlatformAccessory, Service as HAPService } from 'homebridge';
+import AccessoryInformation from '../services/accessory-information';
+import { AccessoryContext } from '../types';
+import DaikinAircon from '../airbase-controller';
 
-class Accessory {
-    constructor({ api, log, homekitAccessory, config }) {
+export default class Accessory {
+    protected api: API;
+    protected log: Logging;
+    protected accessory: PlatformAccessory<AccessoryContext>;
+    protected config: any;
+    protected services: any[];
+    public airbase!: DaikinAircon;
+
+    constructor({ api, log, homekitAccessory, config }: {
+        api: API;
+        log: Logging;
+        homekitAccessory: PlatformAccessory<AccessoryContext>;
+        config: any;
+    }) {
         this.api = api;
         this.log = log;
         this.accessory = homekitAccessory;
@@ -23,7 +38,7 @@ class Accessory {
         this.log.debug(`Found ${this.constructor.name} ${this.name}`);
     }
 
-    assignAirbase(airbase) {
+    assignAirbase(airbase: DaikinAircon): void {
         this.airbase = airbase;
 
         // use the most up to date airbase details in the accessory context
@@ -35,21 +50,19 @@ class Accessory {
         }
     }
 
-    addService(service) {
+    addService(service: any): void {
         this.services.push(service);
     }
 
-    getHomekitAccessory() {
+    getHomekitAccessory(): PlatformAccessory<AccessoryContext> {
         return this.accessory;
     }
 
-    get context() {
+    get context(): AccessoryContext {
         return this.accessory.context;
     }
 
-    get name() {
+    get name(): string {
         return this.accessory.displayName;
     }
 }
-
-module.exports = Accessory;

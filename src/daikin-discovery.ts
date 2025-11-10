@@ -1,4 +1,5 @@
-const udp = require('dgram');
+import * as udp from 'dgram';
+import { Logging } from 'homebridge';
 
 const LISTEN_ADDRESS = '0.0.0.0';
 const LISTEN_PORT = 30000;
@@ -7,9 +8,9 @@ const MULTICAST_ADDRESS = '224.0.0.1';
 const PROBE_ADDRESS = '255.255.255.255';
 const PROBE_ATTEMPTS = 10;
 const PROBE_INTERVAL = 500;
-const PROBE_DATA = new Buffer.from('DAIKIN_UDP/common/basic_info');
+const PROBE_DATA = Buffer.from('DAIKIN_UDP/common/basic_info');
 
-const discover = (log) => {
+const discover = (log: Logging): Promise<Set<string>> => {
     return new Promise((resolve) => {
         log.info(
             `Starting auto-discovery of Daikin devices for ${
@@ -17,9 +18,9 @@ const discover = (log) => {
             } seconds`
         );
 
-        const discoveredDevices = new Set();
+        const discoveredDevices = new Set<string>();
 
-        let probeTimeout;
+        let probeTimeout: NodeJS.Timeout | null = null;
 
         const udpSocket = udp.createSocket({ type: 'udp4', reuseAddr: true });
 
@@ -46,7 +47,7 @@ const discover = (log) => {
             sendProbes(PROBE_ATTEMPTS);
         });
 
-        const sendProbes = (attemptsLeft) => {
+        const sendProbes = (attemptsLeft: number): void => {
             probeTimeout = null;
 
             if (attemptsLeft > 0) {
@@ -71,7 +72,7 @@ const discover = (log) => {
             }
         };
 
-        const finalizeDiscovery = () => {
+        const finalizeDiscovery = (): void => {
             if (probeTimeout) {
                 clearTimeout(probeTimeout);
             }
@@ -84,4 +85,4 @@ const discover = (log) => {
     });
 };
 
-module.exports = discover;
+export default discover;

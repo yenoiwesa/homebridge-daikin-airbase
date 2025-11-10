@@ -1,16 +1,15 @@
-const Service = require('./service');
+import { API, Characteristic } from 'homebridge';
+import Service from './service';
 
-let Characteristic;
-
-class AccessoryInformation extends Service {
-    constructor({ api, log, accessory }) {
+export default class AccessoryInformation extends Service {
+    constructor({ api, log, accessory }: { api: API; log: any; accessory: any }) {
         super({
             log,
             accessory,
             descriptor: { type: api.hap.Service.AccessoryInformation },
         });
 
-        Characteristic = api.hap.Characteristic;
+        const Characteristic = api.hap.Characteristic;
 
         this.service.setCharacteristic(
             Characteristic.Manufacturer,
@@ -30,5 +29,3 @@ class AccessoryInformation extends Service {
         );
     }
 }
-
-module.exports = AccessoryInformation;

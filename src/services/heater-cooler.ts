@@ -1,11 +1,21 @@
-const { get } = require('lodash');
-const Airbase = require('../airbase-controller');
-const Service = require('./service');
+import { API, Characteristic } from 'homebridge';
+import { get } from 'lodash';
+import Service from './service';
+import { ControlInfo, SensorInfo, UpdateStateParams } from '../types';
+import DaikinAircon from '../airbase-controller';
 
-let Characteristic;
+let CharacteristicType: typeof Characteristic;
 
-class HeaterCooler extends Service {
-    constructor({ api, log, accessory }) {
+export default class HeaterCooler extends Service {
+    private active: Characteristic;
+    private currentHeaterCoolerState: Characteristic;
+    private targetHeaterCoolerState: Characteristic;
+    private currentTemperature: Characteristic;
+    private coolingThresholdTemperature: Characteristic;
+    private heatingThresholdTemperature: Characteristic;
+    private temperatureDisplayUnits: Characteristic;
+
+    constructor({ api, log, accessory }: { api: API; log: any; accessory: any }) {
         super({
             log,
             accessory,
@@ -16,19 +26,19 @@ class HeaterCooler extends Service {
             },
         });
 
-        Characteristic = api.hap.Characteristic;
+        CharacteristicType = api.hap.Characteristic;
 
         // Active
         // INACTIVE (0) | ACTIVE (1)
-        this.active = this.getCharacteristic(Characteristic.Active)
-            .on('get', (cb) =>
+        this.active = this.getCharacteristic(CharacteristicType.Active)
+            .on('get', (cb: any) =>
                 this.getHomekitState(
                     'active state',
                     this.getActive.bind(this),
                     cb
                 )
             )
-            .on('set', (value, cb) =>
+            .on('set', (value: any, cb: any) =>
                 this.setHomekitState(
                     'active state',
                     value,
@@ -40,8 +50,8 @@ class HeaterCooler extends Service {
         // Current Heater Cooler State
         // INACTIVE (0) | IDLE (1) | HEATING (2) | COOLING (3)
         this.currentHeaterCoolerState = this.getCharacteristic(
-            Characteristic.CurrentHeaterCoolerState
-        ).on('get', (cb) =>
+            CharacteristicType.CurrentHeaterCoolerState
+        ).on('get', (cb: any) =>
             this.getHomekitState(
                 'current heater/cooler state',
                 this.getCurrentHeaterCoolerState.bind(this),
@@ -52,29 +62,29 @@ class HeaterCooler extends Service {
         // Target Heater Cooler State
         // AUTO (0) | HEAT (1) | COOL (2)
         const validTargetHeaterCoolerStates = [
-            Characteristic.TargetHeaterCoolerState.COOL,
-            Characteristic.TargetHeaterCoolerState.HEAT,
+            CharacteristicType.TargetHeaterCoolerState.COOL,
+            CharacteristicType.TargetHeaterCoolerState.HEAT,
         ];
         if (accessory.context.airbase.autoModeSupported) {
             validTargetHeaterCoolerStates.push(
-                Characteristic.TargetHeaterCoolerState.AUTO
+                CharacteristicType.TargetHeaterCoolerState.AUTO
             );
         }
 
         this.targetHeaterCoolerState = this.getCharacteristic(
-            Characteristic.TargetHeaterCoolerState
+            CharacteristicType.TargetHeaterCoolerState
         )
             .setProps({
                 validValues: validTargetHeaterCoolerStates,
             })
-            .on('get', (cb) =>
+            .on('get', (cb: any) =>
                 this.getHomekitState(
                     'target heater/cooler state',
                     this.getTargetHeaterCoolerState.bind(this),
                     cb
                 )
             )
-            .on('set', (value, cb) =>
+            .on('set', (value: any, cb: any) =>
                 this.setHomekitState(
                     'target heater/cooler state',
                     value,
@@ -85,8 +95,8 @@ class HeaterCooler extends Service {
 
         // Current Temperature
         this.currentTemperature = this.getCharacteristic(
-            Characteristic.CurrentTemperature
-        ).on('get', (cb) =>
+            CharacteristicType.CurrentTemperature
+        ).on('get', (cb: any) =>
             this.getHomekitState(
                 'current temperature',
                 this.getCurrentTemperature.bind(this),
@@ -96,21 +106,21 @@ class HeaterCooler extends Service {
 
         // Cooling Threshold Temperature
         this.coolingThresholdTemperature = this.getCharacteristic(
-            Characteristic.CoolingThresholdTemperature
+            CharacteristicType.CoolingThresholdTemperature
         )
             .setProps({
                 minValue: accessory.context.airbase.coolMinTemperature,
                 maxValue: accessory.context.airbase.coolMaxTemperature,
                 minStep: 1,
             })
-            .on('get', (cb) =>
+            .on('get', (cb: any) =>
                 this.getHomekitState(
                     'cooling threshold temperature',
                     this.getCoolingThresholdTemperature.bind(this),
                     cb
                 )
             )
-            .on('set', (value, cb) =>
+            .on('set', (value: any, cb: any) =>
                 this.setHomekitState(
                     'cooling threshold temperature',
                     value,
@@ -121,21 +131,21 @@ class HeaterCooler extends Service {
 
         // Heating Threshold Temperature
         this.heatingThresholdTemperature = this.getCharacteristic(
-            Characteristic.HeatingThresholdTemperature
+            CharacteristicType.HeatingThresholdTemperature
         )
             .setProps({
                 minValue: accessory.context.airbase.heatMinTemperature,
                 maxValue: accessory.context.airbase.heatMaxTemperature,
                 minStep: 1,
             })
-            .on('get', (cb) =>
+            .on('get', (cb: any) =>
                 this.getHomekitState(
                     'heating threshold temperature',
                     this.getHeatingThresholdTemperature.bind(this),
                     cb
                 )
             )
-            .on('set', (value, cb) =>
+            .on('set', (value: any, cb: any) =>
                 this.setHomekitState(
                     'heating threshold temperature',
                     value,
@@ -147,34 +157,36 @@ class HeaterCooler extends Service {
         // Temperature Unit
         // CELSIUS | FAHRENHEIT
         this.temperatureDisplayUnits = this.getCharacteristic(
-            Characteristic.TemperatureDisplayUnits
+            CharacteristicType.TemperatureDisplayUnits
         )
             .setProps({
-                validValues: [Characteristic.TemperatureDisplayUnits.CELSIUS],
+                validValues: [CharacteristicType.TemperatureDisplayUnits.CELSIUS],
             })
-            .updateValue(Characteristic.TemperatureDisplayUnits.CELSIUS);
+            .updateValue(CharacteristicType.TemperatureDisplayUnits.CELSIUS);
     }
 
-    async updateState({ controlInfo, sensorInfo }) {
-        this.active.updateValue(await this.getActive(controlInfo));
-        this.currentHeaterCoolerState.updateValue(
-            await this.getCurrentHeaterCoolerState({ controlInfo, sensorInfo })
-        );
-        this.targetHeaterCoolerState.updateValue(
-            await this.getTargetHeaterCoolerState(controlInfo)
-        );
-        this.coolingThresholdTemperature.updateValue(
-            await this.getCoolingThresholdTemperature(controlInfo)
-        );
-        this.heatingThresholdTemperature.updateValue(
-            await this.getHeatingThresholdTemperature(controlInfo)
-        );
-        this.currentTemperature.updateValue(
-            await this.getCurrentTemperature(sensorInfo)
-        );
+    async updateState({ controlInfo, sensorInfo }: UpdateStateParams): Promise<void> {
+        if (controlInfo && sensorInfo) {
+            this.active.updateValue(await this.getActive(controlInfo));
+            this.currentHeaterCoolerState.updateValue(
+                await this.getCurrentHeaterCoolerState({ controlInfo, sensorInfo })
+            );
+            this.targetHeaterCoolerState.updateValue(
+                await this.getTargetHeaterCoolerState(controlInfo)
+            );
+            this.coolingThresholdTemperature.updateValue(
+                await this.getCoolingThresholdTemperature(controlInfo)
+            );
+            this.heatingThresholdTemperature.updateValue(
+                await this.getHeatingThresholdTemperature(controlInfo)
+            );
+            this.currentTemperature.updateValue(
+                await this.getCurrentTemperature(sensorInfo)
+            );
+        }
     }
 
-    async getActive(controlInfo = null) {
+    async getActive(controlInfo?: ControlInfo): Promise<number> {
         const { power, mode } =
             controlInfo || (await this.airbase.getControlInfo());
 
@@ -182,14 +194,14 @@ class HeaterCooler extends Service {
         // - powered
         // - not in fan mode
         // - not in dry mode
-        return power === Airbase.Power.ON &&
-            mode !== Airbase.Mode.FAN &&
-            mode !== Airbase.Mode.DRY
-            ? Characteristic.Active.ACTIVE
-            : Characteristic.Active.INACTIVE;
+        return power === DaikinAircon.Power.ON &&
+            mode !== DaikinAircon.Mode.FAN &&
+            mode !== DaikinAircon.Mode.DRY
+            ? CharacteristicType.Active.ACTIVE
+            : CharacteristicType.Active.INACTIVE;
     }
 
-    async setActive(value) {
+    async setActive(value: number): Promise<void> {
         const active = await this.getActive();
 
         if (active === value) {
@@ -200,9 +212,9 @@ class HeaterCooler extends Service {
         }
 
         const power =
-            value === Characteristic.Active.ACTIVE
-                ? Airbase.Power.ON
-                : Airbase.Power.OFF;
+            value === CharacteristicType.Active.ACTIVE
+                ? DaikinAircon.Power.ON
+                : DaikinAircon.Power.OFF;
 
         const controlInfo = await this.airbase.setControlInfo({
             power,
@@ -212,123 +224,127 @@ class HeaterCooler extends Service {
         this.updateAllServices({ controlInfo });
     }
 
-    async calculateHeatingCoolingState(controlInfo, sensorInfo = null) {
+    async calculateHeatingCoolingState(controlInfo: ControlInfo, sensorInfo: SensorInfo): Promise<number> {
         const { mode, targetTemperature, modeTargetTemperature } = controlInfo;
         const { indoorTemperature } = sensorInfo;
 
-        let currentHeaterCoolerState;
+        let currentHeaterCoolerState: number = CharacteristicType.CurrentHeaterCoolerState.IDLE;
 
         const setHeating = () => {
             const heatingTarget = get(
                 modeTargetTemperature,
-                Airbase.Mode.HEAT,
+                DaikinAircon.Mode.HEAT,
                 targetTemperature
             );
 
             currentHeaterCoolerState =
                 indoorTemperature < heatingTarget
-                    ? Characteristic.CurrentHeaterCoolerState.HEATING
-                    : Characteristic.CurrentHeaterCoolerState.IDLE;
+                    ? CharacteristicType.CurrentHeaterCoolerState.HEATING
+                    : CharacteristicType.CurrentHeaterCoolerState.IDLE;
         };
 
         const setCooling = () => {
             const coolingTarget = get(
                 modeTargetTemperature,
-                Airbase.Mode.COOL,
+                DaikinAircon.Mode.COOL,
                 targetTemperature
             );
 
             currentHeaterCoolerState =
                 indoorTemperature > coolingTarget
-                    ? Characteristic.CurrentHeaterCoolerState.COOLING
-                    : Characteristic.CurrentHeaterCoolerState.IDLE;
+                    ? CharacteristicType.CurrentHeaterCoolerState.COOLING
+                    : CharacteristicType.CurrentHeaterCoolerState.IDLE;
         };
 
         switch (mode) {
-            case Airbase.Mode.HEAT:
+            case DaikinAircon.Mode.HEAT:
                 setHeating();
                 break;
-            case Airbase.Mode.COOL:
+            case DaikinAircon.Mode.COOL:
                 setCooling();
                 break;
-            case Airbase.Mode.AUTO:
+            case DaikinAircon.Mode.AUTO:
                 setHeating();
                 if (
                     currentHeaterCoolerState ===
-                    Characteristic.CurrentHeaterCoolerState.IDLE
+                    CharacteristicType.CurrentHeaterCoolerState.IDLE
                 ) {
                     setCooling();
                 }
                 break;
             default:
                 currentHeaterCoolerState =
-                    Characteristic.CurrentHeaterCoolerState.IDLE;
+                    CharacteristicType.CurrentHeaterCoolerState.IDLE;
                 break;
         }
 
         return currentHeaterCoolerState;
     }
 
-    async getCurrentHeaterCoolerState({ controlInfo, sensorInfo } = {}) {
-        let currentHeaterCoolerState;
+    async getCurrentHeaterCoolerState({ controlInfo, sensorInfo }: Partial<UpdateStateParams> = {}): Promise<number> {
+        let currentHeaterCoolerState: number;
 
-        controlInfo = controlInfo || (await this.airbase.getControlInfo());
+        const resolvedControlInfo = controlInfo || (await this.airbase.getControlInfo());
 
-        const active = await this.getActive(controlInfo);
+        const active = await this.getActive(resolvedControlInfo);
 
-        if (active === Characteristic.Active.INACTIVE) {
+        if (active === CharacteristicType.Active.INACTIVE) {
             currentHeaterCoolerState =
-                Characteristic.CurrentHeaterCoolerState.INACTIVE;
+                CharacteristicType.CurrentHeaterCoolerState.INACTIVE;
         } else {
-            sensorInfo = sensorInfo || (await this.airbase.getSensorInfo());
+            const resolvedSensorInfo = sensorInfo || (await this.airbase.getSensorInfo());
 
             currentHeaterCoolerState = await this.calculateHeatingCoolingState(
-                controlInfo,
-                sensorInfo
+                resolvedControlInfo,
+                resolvedSensorInfo
             );
         }
 
         return currentHeaterCoolerState;
     }
 
-    async getTargetHeaterCoolerState(controlInfo = null) {
-        let targetHeaterCoolerState;
+    async getTargetHeaterCoolerState(controlInfo?: ControlInfo): Promise<number> {
+        let targetHeaterCoolerState: number;
 
         const { mode } = controlInfo || (await this.airbase.getControlInfo());
 
         switch (mode) {
-            case Airbase.Mode.HEAT:
+            case DaikinAircon.Mode.HEAT:
                 targetHeaterCoolerState =
-                    Characteristic.TargetHeaterCoolerState.HEAT;
+                    CharacteristicType.TargetHeaterCoolerState.HEAT;
                 break;
 
-            case Airbase.Mode.AUTO:
+            case DaikinAircon.Mode.AUTO:
                 targetHeaterCoolerState =
-                    Characteristic.TargetHeaterCoolerState.AUTO;
+                    CharacteristicType.TargetHeaterCoolerState.AUTO;
                 break;
-            case Airbase.Mode.DRY:
-            case Airbase.Mode.FAN:
-            case Airbase.Mode.COOL:
+            case DaikinAircon.Mode.DRY:
+            case DaikinAircon.Mode.FAN:
+            case DaikinAircon.Mode.COOL:
                 targetHeaterCoolerState =
-                    Characteristic.TargetHeaterCoolerState.COOL;
+                    CharacteristicType.TargetHeaterCoolerState.COOL;
+                break;
+            default:
+                targetHeaterCoolerState =
+                    CharacteristicType.TargetHeaterCoolerState.COOL;
                 break;
         }
 
         return targetHeaterCoolerState;
     }
 
-    async setTargetHeaterCoolerState(value) {
-        let mode;
+    async setTargetHeaterCoolerState(value: number): Promise<void> {
+        let mode: number | undefined;
 
         switch (value) {
-            case Characteristic.TargetHeaterCoolerState.HEAT:
-                mode = Airbase.Mode.HEAT;
+            case CharacteristicType.TargetHeaterCoolerState.HEAT:
+                mode = DaikinAircon.Mode.HEAT;
                 break;
-            case Characteristic.TargetHeaterCoolerState.COOL:
-                mode = Airbase.Mode.COOL;
+            case CharacteristicType.TargetHeaterCoolerState.COOL:
+                mode = DaikinAircon.Mode.COOL;
                 break;
-            case Characteristic.TargetHeaterCoolerState.AUTO:
-                mode = Airbase.Mode.AUTO;
+            case CharacteristicType.TargetHeaterCoolerState.AUTO:
+                mode = DaikinAircon.Mode.AUTO;
                 break;
         }
 
@@ -348,31 +364,31 @@ class HeaterCooler extends Service {
         this.updateAllServices({ controlInfo });
     }
 
-    async getCurrentTemperature(sensorInfo = null) {
+    async getCurrentTemperature(sensorInfo?: SensorInfo): Promise<number> {
         const { indoorTemperature } =
             sensorInfo || (await this.airbase.getSensorInfo());
 
         return indoorTemperature;
     }
 
-    async getCoolingThresholdTemperature(controlInfo = null) {
+    async getCoolingThresholdTemperature(controlInfo?: ControlInfo): Promise<number> {
         const { targetTemperature, modeTargetTemperature } =
             controlInfo || (await this.airbase.getControlInfo());
 
-        return modeTargetTemperature[Airbase.Mode.COOL] || targetTemperature;
+        return modeTargetTemperature[DaikinAircon.Mode.COOL] || targetTemperature;
     }
 
-    async getHeatingThresholdTemperature(controlInfo = null) {
+    async getHeatingThresholdTemperature(controlInfo?: ControlInfo): Promise<number> {
         const { targetTemperature, modeTargetTemperature } =
             controlInfo || (await this.airbase.getControlInfo());
 
-        return modeTargetTemperature[Airbase.Mode.HEAT] || targetTemperature;
+        return modeTargetTemperature[DaikinAircon.Mode.HEAT] || targetTemperature;
     }
 
-    async setCoolingThresholdTemperature(value) {
+    async setCoolingThresholdTemperature(value: number): Promise<void> {
         const controlInfo = await this.airbase.setControlInfo({
             modeTargetTemperature: {
-                [Airbase.Mode.COOL]: value,
+                [DaikinAircon.Mode.COOL]: value,
             },
         });
 
@@ -380,10 +396,10 @@ class HeaterCooler extends Service {
         this.updateAllServices({ controlInfo });
     }
 
-    async setHeatingThresholdTemperature(value) {
+    async setHeatingThresholdTemperature(value: number): Promise<void> {
         const controlInfo = await this.airbase.setControlInfo({
             modeTargetTemperature: {
-                [Airbase.Mode.HEAT]: value,
+                [DaikinAircon.Mode.HEAT]: value,
             },
         });
 
@@ -391,5 +407,3 @@ class HeaterCooler extends Service {
         this.updateAllServices({ controlInfo });
     }
 }
-
-module.exports = HeaterCooler;

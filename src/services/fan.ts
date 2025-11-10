@@ -1,10 +1,16 @@
-const Airbase = require('../airbase-controller');
-const Service = require('./service');
+import { API, Characteristic } from 'homebridge';
+import Service from './service';
+import { ControlInfo, UpdateStateParams } from '../types';
+import DaikinAircon from '../airbase-controller';
 
-let Characteristic;
+let CharacteristicType: typeof Characteristic;
 
-class Fan extends Service {
-    constructor({ api, log, accessory }) {
+export default class Fan extends Service {
+    private on: Characteristic;
+    private rotationSpeed: Characteristic;
+    private fanSpeedSteps: number;
+
+    constructor({ api, log, accessory }: { api: API; log: any; accessory: any }) {
         super({
             log,
             accessory,
@@ -15,15 +21,15 @@ class Fan extends Service {
             },
         });
 
-        Characteristic = api.hap.Characteristic;
+        CharacteristicType = api.hap.Characteristic;
 
         // On
         // boolean
-        this.on = this.getCharacteristic(Characteristic.On)
-            .on('get', (cb) =>
+        this.on = this.getCharacteristic(CharacteristicType.On)
+            .on('get', (cb: any) =>
                 this.getHomekitState('on state', this.getOn.bind(this), cb)
             )
-            .on('set', (value, cb) =>
+            .on('set', (value: any, cb: any) =>
                 this.setHomekitState(
                     'on state',
                     value,
@@ -39,21 +45,21 @@ class Fan extends Service {
         );
 
         this.rotationSpeed = this.getCharacteristic(
-            Characteristic.RotationSpeed
+            CharacteristicType.RotationSpeed
         )
             .setProps({
                 minValue: 0,
                 maxValue: 100,
                 minStep: this.fanSpeedSteps,
             })
-            .on('get', (cb) =>
+            .on('get', (cb: any) =>
                 this.getHomekitState(
                     'fan rotation speed',
                     this.getRotationSpeed.bind(this),
                     cb
                 )
             )
-            .on('set', (value, cb) =>
+            .on('set', (value: any, cb: any) =>
                 this.setHomekitState(
                     'fan rotation speed',
                     value,
@@ -63,48 +69,50 @@ class Fan extends Service {
             );
     }
 
-    async updateState({ controlInfo }) {
-        this.on.updateValue(await this.getOn(controlInfo));
-        this.rotationSpeed.updateValue(
-            await this.getRotationSpeed(controlInfo)
-        );
+    async updateState({ controlInfo }: UpdateStateParams): Promise<void> {
+        if (controlInfo) {
+            this.on.updateValue(await this.getOn(controlInfo));
+            this.rotationSpeed.updateValue(
+                await this.getRotationSpeed(controlInfo)
+            );
+        }
     }
 
-    async getOn(controlInfo = null) {
+    async getOn(controlInfo?: ControlInfo): Promise<boolean> {
         const { power } = controlInfo || (await this.airbase.getControlInfo());
 
-        return power === Airbase.Power.ON;
+        return power === DaikinAircon.Power.ON;
     }
 
-    async setOn(value) {
+    async setOn(value: boolean): Promise<void> {
         const controlInfo = await this.airbase.setControlInfo({
-            power: value ? Airbase.Power.ON : Airbase.Power.OFF,
+            power: value ? DaikinAircon.Power.ON : DaikinAircon.Power.OFF,
         });
 
         // update side effect properties
         this.updateAllServices({ controlInfo });
     }
 
-    async getRotationSpeed(controlInfo = null) {
+    async getRotationSpeed(controlInfo?: ControlInfo): Promise<number> {
         const { power, fanRate } =
             controlInfo || (await this.airbase.getControlInfo());
 
         // make sure to map power off to zero speed
         // otherwise the Home app has display consistency issues
-        if (power !== Airbase.Power.ON) {
+        if (power !== DaikinAircon.Power.ON) {
             return 0;
         }
 
-        let fanStep;
+        let fanStep: number;
         switch (fanRate) {
             default:
-            case Airbase.FanSpeed.LOW:
+            case DaikinAircon.FanSpeed.LOW:
                 fanStep = 1;
                 break;
-            case Airbase.FanSpeed.MEDIUM:
+            case DaikinAircon.FanSpeed.MEDIUM:
                 fanStep = 2;
                 break;
-            case Airbase.FanSpeed.HIGH:
+            case DaikinAircon.FanSpeed.HIGH:
                 fanStep = 3;
                 break;
         }
@@ -112,18 +120,18 @@ class Fan extends Service {
         return Math.min(Math.ceil(fanStep * this.fanSpeedSteps), 100);
     }
 
-    async setRotationSpeed(value) {
-        let fanRate;
+    async setRotationSpeed(value: number): Promise<void> {
+        let fanRate: number;
         switch (Math.round(value)) {
             case 100:
-                fanRate = Airbase.FanSpeed.HIGH;
+                fanRate = DaikinAircon.FanSpeed.HIGH;
                 break;
             case Math.round(this.fanSpeedSteps * 2):
-                fanRate = Airbase.FanSpeed.MEDIUM;
+                fanRate = DaikinAircon.FanSpeed.MEDIUM;
                 break;
             default:
             case Math.round(this.fanSpeedSteps):
-                fanRate = Airbase.FanSpeed.LOW;
+                fanRate = DaikinAircon.FanSpeed.LOW;
                 break;
         }
 
@@ -135,5 +143,3 @@ class Fan extends Service {
         this.updateAllServices({ controlInfo });
     }
 }
-
-module.exports = Fan;

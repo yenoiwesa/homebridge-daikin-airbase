@@ -1,11 +1,25 @@
-const { map } = require('lodash');
+import { map } from 'lodash';
 
-const toBoolean = (val) => Boolean(parseInt(val));
+const toBoolean = (val: string): boolean => Boolean(parseInt(val));
 
-const toHexEncodedString = (str) =>
+const toHexEncodedString = (str: string): string =>
     map(str, (char) => '%' + Buffer.from(char).toString('hex')).join('');
 
-const QUERIES_MAPPING = {
+type QueryMapping = {
+    [key: string]: {
+        key: string;
+        encode: (val: any) => string;
+    };
+};
+
+type ResponseMapping = {
+    [key: string]: {
+        key: string | (string | number)[];
+        parse: (val: string) => any;
+    };
+};
+
+export const QUERIES_MAPPING: { [path: string]: QueryMapping } = {
     'aircon/set_control_info': {
         power: { key: 'pow', encode: String },
         mode: { key: 'mode', encode: String },
@@ -19,21 +33,21 @@ const QUERIES_MAPPING = {
         zoneNames: {
             key: 'zone_name',
             // somehow, Daikin has decided to have the zone names hex encoded
-            encode: (val) => toHexEncodedString(val.join(';')),
+            encode: (val: string[]) => toHexEncodedString(val.join(';')),
         },
         zoneStatuses: {
             key: 'zone_onoff',
-            encode: (val) => encodeURIComponent(val.join(';')),
+            encode: (val: number[]) => encodeURIComponent(val.join(';')),
         },
     },
 };
 
-const RESPONSES_MAPPING = {
+export const RESPONSES_MAPPING: { [path: string]: ResponseMapping } = {
     'common/basic_info': {
         name: { key: 'name', parse: decodeURIComponent },
         ver: {
             key: 'version',
-            parse: (version) => (version || '').split('_').join('.'),
+            parse: (version: string) => (version || '').split('_').join('.'),
         },
         ssid: { key: 'ssid', parse: String },
         en_setzone: { key: 'zonesSupported', parse: toBoolean },
@@ -41,7 +55,7 @@ const RESPONSES_MAPPING = {
     'aircon/get_model_info': {
         model: {
             key: 'model',
-            parse: (model) => (model === 'NOTSUPPORT' ? 'N/A' : model),
+            parse: (model: string) => (model === 'NOTSUPPORT' ? 'N/A' : model),
         },
         type: { key: 'type', parse: String },
         humd: { key: 'isHumidifierSupported', parse: toBoolean },
@@ -80,16 +94,14 @@ const RESPONSES_MAPPING = {
     'aircon/get_zone_setting': {
         zone_name: {
             key: 'zoneNames',
-            parse: (val) => decodeURIComponent(val).split(';'),
+            parse: (val: string) => decodeURIComponent(val).split(';'),
         },
         zone_onoff: {
             key: 'zoneStatuses',
-            parse: (val) =>
+            parse: (val: string) =>
                 decodeURIComponent(val)
                     .split(';')
                     .map((x) => parseInt(x)),
         },
     },
 };
-
-module.exports = { QUERIES_MAPPING, RESPONSES_MAPPING };

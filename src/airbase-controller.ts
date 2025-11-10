@@ -1,8 +1,17 @@
-const fetch = require('node-fetch');
-const { get, isNumber, setWith, forEach, merge } = require('lodash');
-const debounce = require('debounce-promise');
-const { cachePromise } = require('./utils');
-const { QUERIES_MAPPING, RESPONSES_MAPPING } = require('./constants');
+import fetch from 'node-fetch';
+import { get, isNumber, setWith, forEach, merge } from 'lodash';
+import debounce from 'debounce-promise';
+import { Logging } from 'homebridge';
+import { cachePromise } from './utils';
+import { QUERIES_MAPPING, RESPONSES_MAPPING } from './constants';
+import {
+    AirbaseInfo,
+    ControlInfo,
+    SensorInfo,
+    ZoneSetting,
+    RawZoneSetting,
+    UpdateStateParams,
+} from './types';
 
 const RETRY_ATTEMPTS = 3;
 const GET_CONTROL_INFO_CACHE_DURATION = 2 * 1000;
@@ -12,7 +21,11 @@ const SET_CONTROL_INFO_DEBOUNCE_DELAY = 500;
 const POLLING_INTERVAL_CONFIG = 'pollingInterval';
 const POLLING_INTERVAL_DEFAULT = 5; // minutes
 
-class DaikinAircon {
+interface ServiceWithUpdateState {
+    updateState(values: UpdateStateParams): void;
+}
+
+export default class DaikinAircon {
     static get Power() {
         return {
             OFF: 0,
@@ -39,7 +52,21 @@ class DaikinAircon {
         };
     }
 
-    constructor({ log, hostname }) {
+    private log: Logging;
+    private hostname: string;
+    private subscribedServices: ServiceWithUpdateState[];
+    public info!: AirbaseInfo;
+    public config: any;
+    private pollIntervalId?: NodeJS.Timeout;
+    
+    private getControlInfo: () => Promise<ControlInfo>;
+    private setControlInfoCache: (value: Promise<ControlInfo>) => Promise<ControlInfo>;
+    private getSensorInfo: () => Promise<SensorInfo>;
+    private setControlInfo: (values: Partial<ControlInfo>[]) => Promise<ControlInfo[]>;
+    private getRawZoneSetting: () => Promise<RawZoneSetting>;
+    private setRawZoneSettingCache: (value: Promise<RawZoneSetting>) => Promise<RawZoneSetting>;
+
+    constructor({ log, hostname }: { log: Logging; hostname: string }) {
         this.log = log;
         this.hostname = hostname;
         this.subscribedServices = [];
@@ -60,7 +87,7 @@ class DaikinAircon {
             this.doSetAccumulatedControlInfo.bind(this),
             SET_CONTROL_INFO_DEBOUNCE_DELAY,
             { accumulate: true }
-        );
+        ) as any;
 
         const { exec: getRawZoneSetting, set: setRawZoneSettingCache } =
             cachePromise(
@@ -71,7 +98,7 @@ class DaikinAircon {
         this.setRawZoneSettingCache = setRawZoneSettingCache;
     }
 
-    normalizeResponse(path, response) {
+    private normalizeResponse(path: string, response: string): any {
         const mapping = RESPONSES_MAPPING[path];
 
         if (!mapping) {
@@ -87,15 +114,15 @@ class DaikinAircon {
             }
 
             return acc;
-        }, {});
+        }, {} as any);
     }
 
-    getUrl(path, params) {
+    private getUrl(path: string, params?: any): string {
         let url = `http://${this.hostname}/skyfi/${path}`;
 
         if (params) {
             const mapping = QUERIES_MAPPING[path];
-            const encodedParams = [];
+            const encodedParams: string[] = [];
 
             forEach(params, (value, key) => {
                 if (key in mapping) {
@@ -110,7 +137,7 @@ class DaikinAircon {
         return url;
     }
 
-    async sendRequest(path, values) {
+    private async sendRequest(path: string, values?: any): Promise<any> {
         const url = this.getUrl(path, values);
         let response;
 
@@ -120,18 +147,18 @@ class DaikinAircon {
 
                 break;
             } catch (error) {
-                if (!(error instanceof fetch.FetchError)) {
+                if (!(error instanceof Error) || error.name !== 'FetchError') {
                     throw error;
                 }
             }
         }
 
         if (!response) {
-            throw `Maximum retry attempts (${RETRY_ATTEMPTS}) reached, bailing out`;
+            throw new Error(`Maximum retry attempts (${RETRY_ATTEMPTS}) reached, bailing out`);
         }
 
         if (!response.ok) {
-            throw response.status;
+            throw new Error(`Request failed with status ${response.status}`);
         }
 
         const result = this.normalizeResponse(path, await response.text());
@@ -146,7 +173,7 @@ class DaikinAircon {
         return result;
     }
 
-    async init() {
+    async init(): Promise<void> {
         const [basicInfo, modelInfo] = await Promise.all([
             this.sendRequest('common/basic_info'),
             this.sendRequest('aircon/get_model_info'),
@@ -172,7 +199,7 @@ class DaikinAircon {
         this.initPolling();
     }
 
-    initPolling() {
+    private initPolling(): void {
         const pollingInterval = Math.max(
             get(this.config, POLLING_INTERVAL_CONFIG, POLLING_INTERVAL_DEFAULT),
             0
@@ -190,7 +217,7 @@ class DaikinAircon {
         }
     }
 
-    poll(interval) {
+    private poll(interval: number): void {
         if (this.pollIntervalId) {
             clearInterval(this.pollIntervalId);
         }
@@ -201,11 +228,11 @@ class DaikinAircon {
         }, interval);
     }
 
-    toContext() {
+    toContext(): AirbaseInfo {
         return this.info;
     }
 
-    subscribeService(service) {
+    subscribeService(service: ServiceWithUpdateState): void {
         this.subscribedServices.push(service);
     }
 
@@ -213,7 +240,7 @@ class DaikinAircon {
         controlInfo,
         sensorInfo,
         zoneSetting,
-    } = {}) {
+    }: UpdateStateParams = {}): Promise<void> {
         controlInfo = controlInfo || (await this.getControlInfo());
         sensorInfo = sensorInfo || (await this.getSensorInfo());
 
@@ -226,11 +253,11 @@ class DaikinAircon {
         }
     }
 
-    async doGetControlInfo() {
+    private async doGetControlInfo(): Promise<ControlInfo> {
         return this.sendRequest('aircon/get_control_info');
     }
 
-    async doSetAccumulatedControlInfo(accArgs) {
+    private async doSetAccumulatedControlInfo(accArgs: [Partial<ControlInfo>][]): Promise<ControlInfo[]> {
         const deltas = accArgs.map((args) => args[0]);
         const values = merge({}, ...deltas);
 
@@ -239,7 +266,7 @@ class DaikinAircon {
         return new Array(accArgs.length).fill(controlInfo);
     }
 
-    async doSetControlInfo(values) {
+    private async doSetControlInfo(values: Partial<ControlInfo>): Promise<ControlInfo> {
         // must send the complete list of values to the controller
         const controlInfo = await this.getControlInfo();
         const newControlInfo = merge({}, controlInfo, values);
@@ -257,24 +284,24 @@ class DaikinAircon {
 
         await this.sendRequest('aircon/set_control_info', newControlInfo);
 
-        this.setControlInfoCache(newControlInfo);
+        this.setControlInfoCache(Promise.resolve(newControlInfo));
 
         return newControlInfo;
     }
 
-    async doGetSensorInfo() {
+    private async doGetSensorInfo(): Promise<SensorInfo> {
         return this.sendRequest('aircon/get_sensor_info');
     }
 
-    async doGetRawZoneSetting() {
+    private async doGetRawZoneSetting(): Promise<RawZoneSetting> {
         return this.sendRequest('aircon/get_zone_setting');
     }
 
-    async getZoneSetting(rawZoneSetting = null) {
+    async getZoneSetting(rawZoneSetting?: RawZoneSetting): Promise<ZoneSetting> {
         const { zoneNames, zoneStatuses } =
             rawZoneSetting || (await this.getRawZoneSetting());
 
-        const result = {};
+        const result: ZoneSetting = {};
         for (let index = 0; index < zoneNames.length; index++) {
             const zoneName = zoneNames[index];
             const zoneStatus = zoneStatuses[index];
@@ -285,7 +312,7 @@ class DaikinAircon {
         return result;
     }
 
-    async setZoneSetting(values) {
+    async setZoneSetting(values: ZoneSetting): Promise<ZoneSetting> {
         // must send the complete list of values to the controller
         const { zoneNames, zoneStatuses } = await this.getRawZoneSetting();
 
@@ -295,14 +322,12 @@ class DaikinAircon {
             zoneStatuses[zoneIndex] = zoneStatus;
         });
 
-        const newZoneSetting = { zoneNames, zoneStatuses };
+        const newZoneSetting: RawZoneSetting = { zoneNames, zoneStatuses };
 
         await this.sendRequest('aircon/set_zone_setting', newZoneSetting);
 
-        this.setRawZoneSettingCache(newZoneSetting);
+        this.setRawZoneSettingCache(Promise.resolve(newZoneSetting));
 
         return this.getZoneSetting(newZoneSetting);
     }
 }
-
-module.exports = DaikinAircon;

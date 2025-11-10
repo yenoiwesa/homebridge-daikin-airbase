@@ -2,16 +2,21 @@
     "name": "homebridge-daikin-airbase",
     "version": "3.2.5",
     "description": "A Homebridge plugin providing support for the Daikin Airbase.",
-    "main": "index.js",
+    "main": "dist/index.js",
     "files": [
         "/index.js",
-        "/src",
+        "/dist",
         "/config.schema.json"
     ],
     "scripts": {
+        "build": "rimraf ./dist && tsc",
+        "prepublishOnly": "npm run build",
         "start": "homebridge -D -U ./homebridge-home -P .",
         "debug": "ndb npm start",
-        "lint": "npx prettier '**/*.{js,json,md,yml}' --check && eslint ."
+        "lint:prettier": "prettier '**/*.{js,ts,json,md,yml}' --write",
+        "lint:eslint": "eslint 'src/**/*.ts' --fix",
+        "lint": "npm run lint:eslint && npm run lint:prettier",
+        "watch": "npm run build && npm link && nodemon"
     },
     "keywords": [
         "homebridge-plugin",
@@ -24,9 +29,18 @@
     "author": "Matthieu Di Berardino",
     "license": "Apache-2.0",
     "devDependencies": {
+        "@types/debounce-promise": "^3.1.9",
+        "@types/lodash": "^4.17.20",
+        "@types/node": "^24.10.0",
+        "@types/node-fetch": "^2.6.13",
+        "@types/retry": "^0.12.5",
+        "@typescript-eslint/eslint-plugin": "^8.46.3",
+        "@typescript-eslint/parser": "^8.46.3",
         "eslint": "^8.3.0",
         "homebridge": "^1.3.8",
-        "prettier": "^2.5.0"
+        "prettier": "^2.5.0",
+        "rimraf": "^6.1.0",
+        "typescript": "^5.9.3"
     },
     "engines": {
         "node": ">=14.0.0",
