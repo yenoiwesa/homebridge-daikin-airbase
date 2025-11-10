@@ -1,5 +1,5 @@
 import { API, Logging, PlatformAccessory, PlatformConfig } from 'homebridge';
-import { castArray, get } from 'lodash';
+import { castArray } from 'lodash';
 import retry from 'retry';
 import DaikinAircon from './airbase-controller';
 import discover from './daikin-discovery';
@@ -9,8 +9,6 @@ import { AccessoryContext } from './types';
 
 export const PLUGIN_NAME = 'homebridge-daikin-airbase';
 export const PLATFORM_NAME = 'DaikinAirbase';
-const USE_INDIVIDUAL_ZONE_CONTROLS_CONFIG = 'useIndividualZoneControls';
-const USE_INDIVIDUAL_ZONE_CONTROLS_DEFAULT = false;
 
 export class DaikinAirbasePlatform {
     private log: Logging;
@@ -78,12 +76,6 @@ export class DaikinAirbasePlatform {
     }
 
     async initAccessories(): Promise<void> {
-        const useIndividualZoneControls = get(
-            this.config,
-            USE_INDIVIDUAL_ZONE_CONTROLS_CONFIG,
-            USE_INDIVIDUAL_ZONE_CONTROLS_DEFAULT
-        );
-
         const expectedSSIDs = new Set(
             this.accessories.map((accessory) => accessory.context.airbase.ssid)
         );
@@ -123,17 +115,10 @@ export class DaikinAirbasePlatform {
 
                     const zoneNames = airbase.info.zoneNames;
                     if (zoneNames) {
-                        if (useIndividualZoneControls) {
-                            // add one zone control accessory per zone
-                            // (one switch per accessory)
-                            for (const zoneName of zoneNames) {
-                                this.initZoneControl(airbase, zoneName);
-                            }
-                        }
-                        // add one zone control accessory for all zones
-                        // (multiple switches in one accessory)
-                        else {
-                            this.initZoneControl(airbase);
+                        // add one zone control accessory per zone
+                        // (one switch per accessory)
+                        for (const zoneName of zoneNames) {
+                            this.initZoneControl(airbase, zoneName);
                         }
                     }
 

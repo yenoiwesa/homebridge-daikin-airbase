@@ -26,13 +26,6 @@
                 "type": "integer",
                 "required": false,
                 "default": 5
-            },
-            "useIndividualZoneControls": {
-                "title": "Use individual zone controls",
-                "description": "Defines whether to map each zone switch to an individual accessory when a Daikin Zone Controller is available (true), or to map all zone switches to a single grouped accessory (false, default).",
-                "type": "boolean",
-                "required": false,
-                "default": false
             }
         }
     },
@@ -44,8 +37,7 @@
             "title": "Advanced Settings",
             "items": [
                 "hostname",
-                "pollingInterval",
-                "useIndividualZoneControls"
+                "pollingInterval"
             ]
         }
     ]
