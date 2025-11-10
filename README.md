@@ -72,10 +72,6 @@ The platform can be configured with the following parameters:
 
 # Notes
 
-## Accessory order
-
-While the platform adds the different accessories in a specific order, the actual display order in the Apple Home app cannot be controlled by the plugin. You may find that accessories are not sorted in the order you expected. An easy work around for that situation is to simply rename the accessories inside the Home app to suit your needs.
-
 ## Accessory caching
 
 Once the platform has discovered an airbase module on the network, either through auto-discovery or static IP mapping, it will create the associated homekit accessories. These accessories will then be cached by homebridge.
