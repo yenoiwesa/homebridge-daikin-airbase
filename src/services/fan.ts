@@ -3,8 +3,6 @@ import Service from './service';
 import { ControlInfo, UpdateStateParams } from '../types';
 import DaikinAircon from '../airbase-controller';
 
-let CharacteristicType: typeof Characteristic;
-
 export default class Fan extends Service {
     private on: Characteristic;
     private rotationSpeed: Characteristic;
@@ -20,6 +18,7 @@ export default class Fan extends Service {
         accessory: any;
     }) {
         super({
+            api,
             log,
             accessory,
             descriptor: {
@@ -29,11 +28,9 @@ export default class Fan extends Service {
             },
         });
 
-        CharacteristicType = api.hap.Characteristic;
-
         // On
         // boolean
-        this.on = this.getCharacteristic(CharacteristicType.On)
+        this.on = this.getCharacteristic(this.api.hap.Characteristic.On)
             .on('get', (cb: any) =>
                 this.getHomekitState('on state', this.getOn.bind(this), cb)
             )
@@ -53,7 +50,7 @@ export default class Fan extends Service {
         );
 
         this.rotationSpeed = this.getCharacteristic(
-            CharacteristicType.RotationSpeed
+            this.api.hap.Characteristic.RotationSpeed
         )
             .setProps({
                 minValue: 0,

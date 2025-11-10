@@ -12,27 +12,26 @@ export default class AccessoryInformation extends Service {
         accessory: any;
     }) {
         super({
+            api,
             log,
             accessory,
             descriptor: { type: api.hap.Service.AccessoryInformation },
         });
 
-        const Characteristic = api.hap.Characteristic;
-
         this.service.setCharacteristic(
-            Characteristic.Manufacturer,
+            this.api.hap.Characteristic.Manufacturer,
             accessory.context.airbase.manufacturer
         );
         this.service.setCharacteristic(
-            Characteristic.Model,
+            this.api.hap.Characteristic.Model,
             accessory.context.airbase.model
         );
         this.service.setCharacteristic(
-            Characteristic.SerialNumber,
+            this.api.hap.Characteristic.SerialNumber,
             accessory.context.airbase.ssid
         );
         this.service.setCharacteristic(
-            Characteristic.FirmwareRevision,
+            this.api.hap.Characteristic.FirmwareRevision,
             accessory.context.airbase.version
         );
     }

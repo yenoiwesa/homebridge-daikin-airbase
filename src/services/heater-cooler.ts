@@ -4,8 +4,6 @@ import Service from './service';
 import { ControlInfo, SensorInfo, UpdateStateParams } from '../types';
 import DaikinAircon from '../airbase-controller';
 
-let CharacteristicType: typeof Characteristic;
-
 export default class HeaterCooler extends Service {
     private active: Characteristic;
     private currentHeaterCoolerState: Characteristic;
@@ -25,6 +23,7 @@ export default class HeaterCooler extends Service {
         accessory: any;
     }) {
         super({
+            api,
             log,
             accessory,
             descriptor: {
@@ -34,11 +33,9 @@ export default class HeaterCooler extends Service {
             },
         });
 
-        CharacteristicType = api.hap.Characteristic;
-
         // Active
         // INACTIVE (0) | ACTIVE (1)
-        this.active = this.getCharacteristic(CharacteristicType.Active)
+        this.active = this.getCharacteristic(this.api.hap.Characteristic.Active)
             .on('get', (cb: any) =>
                 this.getHomekitState(
                     'active state',
@@ -58,7 +55,7 @@ export default class HeaterCooler extends Service {
         // Current Heater Cooler State
         // INACTIVE (0) | IDLE (1) | HEATING (2) | COOLING (3)
         this.currentHeaterCoolerState = this.getCharacteristic(
-            CharacteristicType.CurrentHeaterCoolerState
+            this.api.hap.Characteristic.CurrentHeaterCoolerState
         ).on('get', (cb: any) =>
             this.getHomekitState(
                 'current heater/cooler state',
@@ -70,17 +67,17 @@ export default class HeaterCooler extends Service {
         // Target Heater Cooler State
         // AUTO (0) | HEAT (1) | COOL (2)
         const validTargetHeaterCoolerStates = [
-            CharacteristicType.TargetHeaterCoolerState.COOL,
-            CharacteristicType.TargetHeaterCoolerState.HEAT,
+            this.api.hap.Characteristic.TargetHeaterCoolerState.COOL,
+            this.api.hap.Characteristic.TargetHeaterCoolerState.HEAT,
         ];
         if (accessory.context.airbase.autoModeSupported) {
             validTargetHeaterCoolerStates.push(
-                CharacteristicType.TargetHeaterCoolerState.AUTO
+                this.api.hap.Characteristic.TargetHeaterCoolerState.AUTO
             );
         }
 
         this.targetHeaterCoolerState = this.getCharacteristic(
-            CharacteristicType.TargetHeaterCoolerState
+            this.api.hap.Characteristic.TargetHeaterCoolerState
         )
             .setProps({
                 validValues: validTargetHeaterCoolerStates,
@@ -103,7 +100,7 @@ export default class HeaterCooler extends Service {
 
         // Current Temperature
         this.currentTemperature = this.getCharacteristic(
-            CharacteristicType.CurrentTemperature
+            this.api.hap.Characteristic.CurrentTemperature
         ).on('get', (cb: any) =>
             this.getHomekitState(
                 'current temperature',
@@ -114,7 +111,7 @@ export default class HeaterCooler extends Service {
 
         // Cooling Threshold Temperature
         this.coolingThresholdTemperature = this.getCharacteristic(
-            CharacteristicType.CoolingThresholdTemperature
+            this.api.hap.Characteristic.CoolingThresholdTemperature
         )
             .setProps({
                 minValue: accessory.context.airbase.coolMinTemperature,
@@ -139,7 +136,7 @@ export default class HeaterCooler extends Service {
 
         // Heating Threshold Temperature
         this.heatingThresholdTemperature = this.getCharacteristic(
-            CharacteristicType.HeatingThresholdTemperature
+            this.api.hap.Characteristic.HeatingThresholdTemperature
         )
             .setProps({
                 minValue: accessory.context.airbase.heatMinTemperature,
@@ -165,14 +162,16 @@ export default class HeaterCooler extends Service {
         // Temperature Unit
         // CELSIUS | FAHRENHEIT
         this.temperatureDisplayUnits = this.getCharacteristic(
-            CharacteristicType.TemperatureDisplayUnits
+            this.api.hap.Characteristic.TemperatureDisplayUnits
         )
             .setProps({
                 validValues: [
-                    CharacteristicType.TemperatureDisplayUnits.CELSIUS,
+                    this.api.hap.Characteristic.TemperatureDisplayUnits.CELSIUS,
                 ],
             })
-            .updateValue(CharacteristicType.TemperatureDisplayUnits.CELSIUS);
+            .updateValue(
+                this.api.hap.Characteristic.TemperatureDisplayUnits.CELSIUS
+            );
     }
 
     async updateState({
@@ -213,8 +212,8 @@ export default class HeaterCooler extends Service {
         return power === DaikinAircon.Power.ON &&
             mode !== DaikinAircon.Mode.FAN &&
             mode !== DaikinAircon.Mode.DRY
-            ? CharacteristicType.Active.ACTIVE
-            : CharacteristicType.Active.INACTIVE;
+            ? this.api.hap.Characteristic.Active.ACTIVE
+            : this.api.hap.Characteristic.Active.INACTIVE;
     }
 
     async setActive(value: number): Promise<void> {
@@ -228,7 +227,7 @@ export default class HeaterCooler extends Service {
         }
 
         const power =
-            value === CharacteristicType.Active.ACTIVE
+            value === this.api.hap.Characteristic.Active.ACTIVE
                 ? DaikinAircon.Power.ON
                 : DaikinAircon.Power.OFF;
 
@@ -248,7 +247,7 @@ export default class HeaterCooler extends Service {
         const { indoorTemperature } = sensorInfo;
 
         let currentHeaterCoolerState: number =
-            CharacteristicType.CurrentHeaterCoolerState.IDLE;
+            this.api.hap.Characteristic.CurrentHeaterCoolerState.IDLE;
 
         const setHeating = () => {
             const heatingTarget = get(
@@ -259,8 +258,9 @@ export default class HeaterCooler extends Service {
 
             currentHeaterCoolerState =
                 indoorTemperature < heatingTarget
-                    ? CharacteristicType.CurrentHeaterCoolerState.HEATING
-                    : CharacteristicType.CurrentHeaterCoolerState.IDLE;
+                    ? this.api.hap.Characteristic.CurrentHeaterCoolerState
+                          .HEATING
+                    : this.api.hap.Characteristic.CurrentHeaterCoolerState.IDLE;
         };
 
         const setCooling = () => {
@@ -272,8 +272,9 @@ export default class HeaterCooler extends Service {
 
             currentHeaterCoolerState =
                 indoorTemperature > coolingTarget
-                    ? CharacteristicType.CurrentHeaterCoolerState.COOLING
-                    : CharacteristicType.CurrentHeaterCoolerState.IDLE;
+                    ? this.api.hap.Characteristic.CurrentHeaterCoolerState
+                          .COOLING
+                    : this.api.hap.Characteristic.CurrentHeaterCoolerState.IDLE;
         };
 
         switch (mode) {
@@ -287,14 +288,14 @@ export default class HeaterCooler extends Service {
                 setHeating();
                 if (
                     currentHeaterCoolerState ===
-                    CharacteristicType.CurrentHeaterCoolerState.IDLE
+                    this.api.hap.Characteristic.CurrentHeaterCoolerState.IDLE
                 ) {
                     setCooling();
                 }
                 break;
             default:
                 currentHeaterCoolerState =
-                    CharacteristicType.CurrentHeaterCoolerState.IDLE;
+                    this.api.hap.Characteristic.CurrentHeaterCoolerState.IDLE;
                 break;
         }
 
@@ -312,9 +313,9 @@ export default class HeaterCooler extends Service {
 
         const active = await this.getActive(resolvedControlInfo);
 
-        if (active === CharacteristicType.Active.INACTIVE) {
+        if (active === this.api.hap.Characteristic.Active.INACTIVE) {
             currentHeaterCoolerState =
-                CharacteristicType.CurrentHeaterCoolerState.INACTIVE;
+                this.api.hap.Characteristic.CurrentHeaterCoolerState.INACTIVE;
         } else {
             const resolvedSensorInfo =
                 sensorInfo || (await this.airbase.getSensorInfo());
@@ -338,22 +339,22 @@ export default class HeaterCooler extends Service {
         switch (mode) {
             case DaikinAircon.Mode.HEAT:
                 targetHeaterCoolerState =
-                    CharacteristicType.TargetHeaterCoolerState.HEAT;
+                    this.api.hap.Characteristic.TargetHeaterCoolerState.HEAT;
                 break;
 
             case DaikinAircon.Mode.AUTO:
                 targetHeaterCoolerState =
-                    CharacteristicType.TargetHeaterCoolerState.AUTO;
+                    this.api.hap.Characteristic.TargetHeaterCoolerState.AUTO;
                 break;
             case DaikinAircon.Mode.DRY:
             case DaikinAircon.Mode.FAN:
             case DaikinAircon.Mode.COOL:
                 targetHeaterCoolerState =
-                    CharacteristicType.TargetHeaterCoolerState.COOL;
+                    this.api.hap.Characteristic.TargetHeaterCoolerState.COOL;
                 break;
             default:
                 targetHeaterCoolerState =
-                    CharacteristicType.TargetHeaterCoolerState.COOL;
+                    this.api.hap.Characteristic.TargetHeaterCoolerState.COOL;
                 break;
         }
 
@@ -364,13 +365,13 @@ export default class HeaterCooler extends Service {
         let mode: number | undefined;
 
         switch (value) {
-            case CharacteristicType.TargetHeaterCoolerState.HEAT:
+            case this.api.hap.Characteristic.TargetHeaterCoolerState.HEAT:
                 mode = DaikinAircon.Mode.HEAT;
                 break;
-            case CharacteristicType.TargetHeaterCoolerState.COOL:
+            case this.api.hap.Characteristic.TargetHeaterCoolerState.COOL:
                 mode = DaikinAircon.Mode.COOL;
                 break;
-            case CharacteristicType.TargetHeaterCoolerState.AUTO:
+            case this.api.hap.Characteristic.TargetHeaterCoolerState.AUTO:
                 mode = DaikinAircon.Mode.AUTO;
                 break;
         }

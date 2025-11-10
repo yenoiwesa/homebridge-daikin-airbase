@@ -3,8 +3,6 @@ import Service from './service';
 import { UpdateStateParams, ZoneSetting } from '../types';
 import DaikinAircon from '../airbase-controller';
 
-let CharacteristicType: typeof Characteristic;
-
 export default class ZoneSwitch extends Service {
     private on: Characteristic;
     private zoneName: string;
@@ -21,6 +19,7 @@ export default class ZoneSwitch extends Service {
         zoneName: string;
     }) {
         super({
+            api,
             log,
             accessory,
             descriptor: {
@@ -30,13 +29,11 @@ export default class ZoneSwitch extends Service {
             },
         });
 
-        CharacteristicType = api.hap.Characteristic;
-
         this.zoneName = zoneName;
 
         // On
         // boolean
-        this.on = this.getCharacteristic(CharacteristicType.On)
+        this.on = this.getCharacteristic(this.api.hap.Characteristic.On)
             .on('get', (cb: any) =>
                 this.getHomekitState('on state', this.getOn.bind(this), cb)
             )

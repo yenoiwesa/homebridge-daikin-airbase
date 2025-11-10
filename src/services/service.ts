@@ -1,4 +1,5 @@
 import {
+    API,
     Logging,
     Service as HAPService,
     Characteristic as HAPCharacteristic,
@@ -8,18 +9,22 @@ import { ServiceDescriptor, UpdateStateParams } from '../types';
 
 export default class Service {
     protected log: Logging;
+    protected api: API;
     protected accessory: any;
     protected service: HAPService;
 
     constructor({
+        api,
         log,
         accessory,
         descriptor,
     }: {
+        api: API;
         log: Logging;
         accessory: any;
         descriptor: ServiceDescriptor;
     }) {
+        this.api = api;
         this.log = log;
         this.accessory = accessory;
         this.service = this.getOrCreateHomekitService(descriptor);
