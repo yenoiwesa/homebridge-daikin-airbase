@@ -3,7 +3,7 @@ name: Node CI
 on: [push]
 
 jobs:
-    lint:
+    build:
         runs-on: ubuntu-latest
 
         steps:
@@ -12,9 +12,10 @@ jobs:
               uses: actions/setup-node@v1
               with:
                   node-version: 14.x
-            - name: npm install and lint
+            - name: npm install, build and lint
               run: |
                   npm ci
+                  npm run build
                   npm run lint
               env:
                   CI: true
