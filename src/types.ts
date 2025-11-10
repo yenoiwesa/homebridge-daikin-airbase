@@ -1,5 +1,3 @@
-import { API, Logging, PlatformAccessory, Service, WithUUID } from 'homebridge';
-
 export interface AirbaseInfo {
     manufacturer: string;
     hostname: string;
@@ -50,25 +48,6 @@ export interface ZoneSetting {
 export interface RawZoneSetting {
     zoneNames: string[];
     zoneStatuses: number[];
-}
-
-export interface AccessoryContext {
-    airbase: AirbaseInfo;
-    type: string;
-    zoneName?: string;
-}
-
-export interface AccessoryConstructorParams {
-    api: API;
-    log: Logging;
-    homekitAccessory: PlatformAccessory<AccessoryContext>;
-    config: any;
-}
-
-export interface ServiceDescriptor {
-    type: WithUUID<typeof Service>;
-    name?: string;
-    subType?: string;
 }
 
 export interface UpdateStateParams {

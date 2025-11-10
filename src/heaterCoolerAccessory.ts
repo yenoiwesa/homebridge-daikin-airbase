@@ -108,7 +108,10 @@ export class HeaterCoolerAccessory {
             .onSet(this.setHeatingThresholdTemperature.bind(this));
     }
 
-    updateCharacteristics({ controlInfo, sensorInfo }: UpdateCharacteristicsParams) {
+    updateCharacteristics({
+        controlInfo,
+        sensorInfo,
+    }: UpdateCharacteristicsParams) {
         this.heaterCoolerService.updateCharacteristic(
             this.platform.Characteristic.Active,
             this.calculateActive(controlInfo)

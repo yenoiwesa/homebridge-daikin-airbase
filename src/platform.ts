@@ -24,12 +24,6 @@ export interface DaikinPlatformConfig extends PlatformConfig {
     hostname?: string | string[];
 }
 
-export interface AccessoryContext {
-    ssid: string;
-    hostname: string;
-    zoneName?: string;
-}
-
 export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
     public readonly Service: typeof Service = this.api.hap.Service;
     public readonly Characteristic: typeof Characteristic =

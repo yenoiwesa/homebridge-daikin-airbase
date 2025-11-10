@@ -32,7 +32,9 @@ export class PollingManager {
         }
 
         this.log.debug(
-            `Starting polling for ${this.airbase.info.name} every ${this.pollingInterval / 1000}s`
+            `Starting polling for ${this.airbase.info.name} every ${
+                this.pollingInterval / 1000
+            }s`
         );
 
         this.intervalId = setInterval(async () => {
