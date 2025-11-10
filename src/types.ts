@@ -1,3 +1,9 @@
+import { PlatformConfig } from 'homebridge';
+
+export interface DaikinPlatformConfig extends PlatformConfig {
+    hostname?: string | string[];
+}
+
 export interface AirbaseInfo {
     manufacturer: string;
     hostname: string;

@@ -4,11 +4,11 @@ import {
     Logger,
     Logging,
     PlatformAccessory,
-    PlatformConfig,
     Service,
     Characteristic,
 } from 'homebridge';
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
+import { DaikinPlatformConfig } from './types';
 import { HeaterCoolerAccessory } from './heaterCoolerAccessory';
 import { FanAccessory } from './fanAccessory';
 import { FanModeSwitchAccessory } from './fanModeSwitchAccessory';
@@ -19,10 +19,6 @@ import DaikinAircon from './airbase-controller';
 import discover from './daikin-discovery';
 import { castArray } from 'lodash';
 import retry from 'retry';
-
-export interface DaikinPlatformConfig extends PlatformConfig {
-    hostname?: string | string[];
-}
 
 export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
     public readonly Service: typeof Service = this.api.hap.Service;
