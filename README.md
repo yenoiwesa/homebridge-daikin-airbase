@@ -8,14 +8,14 @@ A Homebridge plugin providing support for the **Daikin Airbase** WiFi module (BR
 
 It allows to turn on/off the aircon, set it to cool/heat/fan/dry/auto mode (when supported), change the target temperature and the fan speed.
 
-Daikin devices will be auto-discovered on the network and mapped to individual accessories in the Home app. Each device will be represented as an accessory group with:
+Daikin devices will be auto-discovered on the network and mapped to individual accessories in the Home app. Each device will be represented by multiple accessories:
 
--   A **heater/cooler** service allowing to set the aircon to cool/heat or auto mode, as well as the threshold temperatures,
+-   A **heater/cooler** accessory allowing to set the aircon to cool/heat or auto mode, as well as the threshold temperatures,
+-   A **fan** accessory allowing to change the aircon's **fan speed** (low/medium/high) if your device supports changing fan speed,
 -   A **switch** allowing to turn on/off **fan mode**,
--   A **fan** service allowing to change the aircon's **fan speed** (low/medium/high) if your device supports changing fan speed,
 -   A second **switch** allowing to turn on/off **dry mode** if your device supports that mode.
 
-In addition, if your system includes a **Daikin Zone Controller**, zones will be auto-discovered and mapped to an additional accessory group, with one switch for enabling/disabling each zone.
+In addition, if your system includes a **Daikin Zone Controller**, zones will be auto-discovered and mapped to additional switches (one per zone).
 
 # Requirements
 
