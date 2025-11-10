@@ -1,3 +1,6 @@
+# build output
+dist
+
 # homebridge home directory
 homebridge-home/*
 !homebridge-home/config.template.json
