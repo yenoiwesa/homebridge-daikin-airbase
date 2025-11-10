@@ -1,33 +1,19 @@
 import { Logger } from 'homebridge';
 import DaikinAircon from './airbase-controller';
-import { ControlInfo, SensorInfo, ZoneSetting } from './types';
-
-export interface UpdateCharacteristicsParams {
-    controlInfo: ControlInfo;
-    sensorInfo: SensorInfo;
-    zoneSetting?: ZoneSetting;
-}
-
-interface AccessoryWithUpdate {
-    updateCharacteristics(params: UpdateCharacteristicsParams): void;
-}
+import { AccessoryUpdateManager } from './accessoryUpdateManager';
 
 export class PollingManager {
     private intervalId?: NodeJS.Timeout;
-    private accessories: AccessoryWithUpdate[] = [];
 
     constructor(
         private readonly airbase: DaikinAircon,
         private readonly log: Logger,
+        private readonly updateManager: AccessoryUpdateManager,
         private readonly pollingInterval: number = 30000
     ) {}
 
     private get info() {
         return this.airbase.getInfo();
-    }
-
-    registerAccessory(accessory: AccessoryWithUpdate): void {
-        this.accessories.push(accessory);
     }
 
     start(): void {
@@ -47,29 +33,7 @@ export class PollingManager {
         );
 
         this.intervalId = setInterval(async () => {
-            try {
-                const controlInfo = await this.airbase.getControlInfo();
-                const sensorInfo = await this.airbase.getSensorInfo();
-                let zoneSetting: ZoneSetting | undefined;
-
-                if (this.info.zonesSupported) {
-                    zoneSetting = await this.airbase.getZoneSetting();
-                }
-
-                // Update all registered accessories
-                for (const accessory of this.accessories) {
-                    accessory.updateCharacteristics({
-                        controlInfo,
-                        sensorInfo,
-                        zoneSetting,
-                    });
-                }
-            } catch (error) {
-                this.log.error(
-                    `Error polling device ${this.info.name}:`,
-                    error
-                );
-            }
+            await this.updateManager.updateAll();
         }, this.pollingInterval);
     }
 

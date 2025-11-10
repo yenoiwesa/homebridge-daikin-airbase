@@ -48,6 +48,7 @@ export default class DaikinAircon {
     private log: Logging;
     private hostname: string;
     private info: AirbaseInfo | null = null;
+    private onControlInfoChanged?: (controlInfo: ControlInfo) => Promise<void>;
 
     public getControlInfo: () => Promise<ControlInfo>;
     private setControlInfoCache: (
@@ -170,7 +171,9 @@ export default class DaikinAircon {
         return result;
     }
 
-    async init(): Promise<void> {
+    async init(
+        onControlInfoChanged?: (controlInfo: ControlInfo) => Promise<void>
+    ): Promise<void> {
         const [basicInfo, modelInfo] = await Promise.all([
             this.sendRequest('common/basic_info'),
             this.sendRequest('aircon/get_model_info'),
@@ -194,6 +197,11 @@ export default class DaikinAircon {
         }
 
         this.info = info;
+
+        // Set up callback if provided
+        if (onControlInfoChanged) {
+            this.onControlInfoChanged = onControlInfoChanged;
+        }
     }
 
     getInfo(): AirbaseInfo {
@@ -239,6 +247,11 @@ export default class DaikinAircon {
         await this.sendRequest('aircon/set_control_info', newControlInfo);
 
         this.setControlInfoCache(Promise.resolve(newControlInfo));
+
+        // Notify listeners that control info has changed
+        if (this.onControlInfoChanged) {
+            await this.onControlInfoChanged(newControlInfo);
+        }
 
         return newControlInfo;
     }

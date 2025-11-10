@@ -2,7 +2,7 @@ import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 import { DaikinAirbasePlatform } from './platform';
 import DaikinAircon from './airbase-controller';
 import { ZoneSetting } from './types';
-import { UpdateCharacteristicsParams } from './pollingManager';
+import { UpdateCharacteristicsParams } from './accessoryUpdateManager';
 
 export class ZoneSwitchAccessory {
     private switchService: Service;

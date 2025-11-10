@@ -15,6 +15,7 @@ import { FanModeSwitchAccessory } from './fanModeSwitchAccessory';
 import { DryModeSwitchAccessory } from './dryModeSwitchAccessory';
 import { ZoneSwitchAccessory } from './zoneSwitchAccessory';
 import { PollingManager } from './pollingManager';
+import { AccessoryUpdateManager } from './accessoryUpdateManager';
 import DaikinAircon from './airbase-controller';
 import discover from './daikin-discovery';
 import { castArray } from 'lodash';
@@ -75,7 +76,16 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                         log: this.log as unknown as Logging,
                     });
 
-                    await airbase.init();
+                    // Create accessory update manager for this airbase
+                    const updateManager = new AccessoryUpdateManager(
+                        airbase,
+                        this.log
+                    );
+
+                    // Initialize airbase with callback to update accessories when control info changes
+                    await airbase.init(async (controlInfo) => {
+                        await updateManager.updateAll(controlInfo);
+                    });
 
                     // Get airbase info (throws if not initialized)
                     const info = airbase.getInfo();
@@ -90,6 +100,7 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                     const pollingManager = new PollingManager(
                         airbase,
                         this.log,
+                        updateManager,
                         pollingIntervalMs
                     );
 
@@ -132,7 +143,7 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                         mainAccessory,
                         airbase
                     );
-                    pollingManager.registerAccessory(heaterCooler);
+                    updateManager.registerAccessory(heaterCooler);
 
                     // Create Fan accessory if supported
                     if (info.fanRateSupported) {
@@ -174,7 +185,7 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                             fanAccessory,
                             airbase
                         );
-                        pollingManager.registerAccessory(fan);
+                        updateManager.registerAccessory(fan);
 
                         // Create Fan Mode switch
                         const fanModeUuid = this.api.hap.uuid.generate(
@@ -217,7 +228,7 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                             fanModeAccessory,
                             airbase
                         );
-                        pollingManager.registerAccessory(fanModeSwitch);
+                        updateManager.registerAccessory(fanModeSwitch);
                     }
 
                     // Create Dry Mode switch if supported
@@ -262,7 +273,7 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                             dryModeAccessory,
                             airbase
                         );
-                        pollingManager.registerAccessory(dryModeSwitch);
+                        updateManager.registerAccessory(dryModeSwitch);
                     }
 
                     // Create zone switch accessories if zones are supported
@@ -310,7 +321,7 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                                 airbase,
                                 zoneName
                             );
-                            pollingManager.registerAccessory(zoneSwitch);
+                            updateManager.registerAccessory(zoneSwitch);
                         }
                     }
 

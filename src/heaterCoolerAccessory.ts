@@ -2,7 +2,7 @@ import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 import { DaikinAirbasePlatform } from './platform';
 import DaikinAircon from './airbase-controller';
 import { ControlInfo, SensorInfo } from './types';
-import { UpdateCharacteristicsParams } from './pollingManager';
+import { UpdateCharacteristicsParams } from './accessoryUpdateManager';
 
 export class HeaterCoolerAccessory {
     private heaterCoolerService: Service;
