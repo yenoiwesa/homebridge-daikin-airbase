@@ -1,5 +1,6 @@
-import { API } from 'homebridge';
+import { API, Logging } from 'homebridge';
 import Service from './service';
+import type Accessory from '../accessories/accessory';
 
 export default class AccessoryInformation extends Service {
     constructor({
@@ -8,8 +9,8 @@ export default class AccessoryInformation extends Service {
         accessory,
     }: {
         api: API;
-        log: any;
-        accessory: any;
+        log: Logging;
+        accessory: Accessory;
     }) {
         super({
             api,

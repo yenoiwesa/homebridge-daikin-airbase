@@ -1,7 +1,8 @@
-import { API, Characteristic } from 'homebridge';
+import { API, Characteristic, Logging } from 'homebridge';
 import Service from './service';
 import { UpdateStateParams, ZoneSetting } from '../types';
 import DaikinAircon from '../airbase-controller';
+import type Accessory from '../accessories/accessory';
 
 export default class ZoneSwitch extends Service {
     private on: Characteristic;
@@ -14,8 +15,8 @@ export default class ZoneSwitch extends Service {
         zoneName,
     }: {
         api: API;
-        log: any;
-        accessory: any;
+        log: Logging;
+        accessory: Accessory;
         zoneName: string;
     }) {
         super({

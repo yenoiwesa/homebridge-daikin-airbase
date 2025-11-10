@@ -9,10 +9,10 @@ import { ServiceDescriptor, UpdateStateParams } from '../types';
 import type DaikinAircon from '../airbase-controller';
 import type Accessory from '../accessories/accessory';
 
-export default class Service<TAccessory extends Accessory = Accessory> {
+export default class Service {
     protected log: Logging;
     protected api: API;
-    protected accessory: TAccessory;
+    protected accessory: Accessory;
     protected service: HAPService;
 
     constructor({
@@ -23,7 +23,7 @@ export default class Service<TAccessory extends Accessory = Accessory> {
     }: {
         api: API;
         log: Logging;
-        accessory: TAccessory;
+        accessory: Accessory;
         descriptor: ServiceDescriptor;
     }) {
         this.api = api;

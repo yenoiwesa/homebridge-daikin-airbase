@@ -1,8 +1,9 @@
-import { API, Characteristic } from 'homebridge';
+import { API, Characteristic, Logging } from 'homebridge';
 import { get } from 'lodash';
 import Service from './service';
 import { ControlInfo, SensorInfo, UpdateStateParams } from '../types';
 import DaikinAircon from '../airbase-controller';
+import type Accessory from '../accessories/accessory';
 
 export default class HeaterCooler extends Service {
     private active: Characteristic;
@@ -19,8 +20,8 @@ export default class HeaterCooler extends Service {
         accessory,
     }: {
         api: API;
-        log: any;
-        accessory: any;
+        log: Logging;
+        accessory: Accessory;
     }) {
         super({
             api,
@@ -115,7 +116,7 @@ export default class HeaterCooler extends Service {
         )
             .setProps({
                 minValue: accessory.context.airbase.coolMinTemperature,
-                maxValue: accessory.context.airbase.coolMaxTemperature,
+                maxValue: accessory.context.airbase.coolMaxTempertature,
                 minStep: 1,
             })
             .on('get', (cb: any) =>
