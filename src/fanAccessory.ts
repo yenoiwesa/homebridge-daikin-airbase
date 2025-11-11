@@ -73,6 +73,10 @@ export class FanAccessory {
     }
 
     private calculateOn(controlInfo: ControlInfo): boolean {
+        // If airside fan is on, the fan accessory should show as off
+        if (controlInfo.fanAirside === DaikinAircon.FanAirside.ON) {
+            return false;
+        }
         return controlInfo.power === DaikinAircon.Power.ON;
     }
 
@@ -80,7 +84,15 @@ export class FanAccessory {
         const power =
             value === true ? DaikinAircon.Power.ON : DaikinAircon.Power.OFF;
 
-        await this.airbase.setControlInfo({ power });
+        // When turning on the fan accessory, disable airside fan
+        if (value === true) {
+            await this.airbase.setControlInfo({
+                power,
+                fanAirside: DaikinAircon.FanAirside.OFF,
+            });
+        } else {
+            await this.airbase.setControlInfo({ power });
+        }
     }
 
     async getRotationSpeed(): Promise<CharacteristicValue> {
@@ -89,7 +101,12 @@ export class FanAccessory {
     }
 
     private calculateRotationSpeed(controlInfo: ControlInfo): number {
-        const { power, fanRate } = controlInfo;
+        const { power, fanRate, fanAirside } = controlInfo;
+
+        // If airside fan is on, show rotation speed as 0
+        if (fanAirside === DaikinAircon.FanAirside.ON) {
+            return 0;
+        }
 
         // Make sure to map power off to zero speed
         if (power !== DaikinAircon.Power.ON) {
@@ -128,6 +145,10 @@ export class FanAccessory {
                 break;
         }
 
-        await this.airbase.setControlInfo({ fanRate });
+        // When adjusting fan speed, disable airside fan
+        await this.airbase.setControlInfo({
+            fanRate,
+            fanAirside: DaikinAircon.FanAirside.OFF,
+        });
     }
 }

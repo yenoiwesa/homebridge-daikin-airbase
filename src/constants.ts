@@ -71,6 +71,7 @@ export const RESPONSES_MAPPING: { [path: string]: ResponseMapping } = {
         heat_h: { key: 'heatMaxTemperature', parse: parseInt },
         frate_steps: { key: 'fanRateSteps', parse: parseInt },
         en_frate_auto: { key: 'autoFanRateSupported', parse: toBoolean },
+        en_airside: { key: 'airsideFanSupported', parse: toBoolean },
     },
     'aircon/get_control_info': {
         pow: { key: 'power', parse: parseInt },

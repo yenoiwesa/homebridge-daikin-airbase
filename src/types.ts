@@ -27,6 +27,7 @@ export interface AirbaseInfo {
     heatMaxTemperature: number;
     fanRateSteps: number;
     autoFanRateSupported: boolean;
+    airsideFanSupported: boolean;
     zoneNames?: string[];
 }
 

@@ -13,6 +13,7 @@ import { HeaterCoolerAccessory } from './heaterCoolerAccessory';
 import { FanAccessory } from './fanAccessory';
 import { FanModeSwitchAccessory } from './fanModeSwitchAccessory';
 import { DryModeSwitchAccessory } from './dryModeSwitchAccessory';
+import { AirsideFanSwitchAccessory } from './airsideFanSwitchAccessory';
 import { ZoneSwitchAccessory } from './zoneSwitchAccessory';
 import { PollingManager } from './pollingManager';
 import { AccessoryUpdateManager } from './accessoryUpdateManager';
@@ -229,6 +230,52 @@ export class DaikinAirbasePlatform implements DynamicPlatformPlugin {
                             airbase
                         );
                         updateManager.registerAccessory(fanModeSwitch);
+                    }
+
+                    // Create Airside Fan switch if supported
+                    if (info.airsideFanSupported) {
+                        const airsideFanUuid = this.api.hap.uuid.generate(
+                            `${info.ssid}:airside-fan`
+                        );
+                        let airsideFanAccessory = this.accessories.find(
+                            (accessory) => accessory.UUID === airsideFanUuid
+                        );
+
+                        if (airsideFanAccessory) {
+                            this.log.info(
+                                'Restoring Airside Fan switch from cache:',
+                                airsideFanAccessory.displayName
+                            );
+                            airsideFanAccessory.context.hostname = hostname;
+                            this.api.updatePlatformAccessories([
+                                airsideFanAccessory,
+                            ]);
+                        } else {
+                            const displayName = `${prefix}Airside Fan`;
+                            this.log.info(
+                                'Adding new Airside Fan switch:',
+                                displayName
+                            );
+                            airsideFanAccessory =
+                                new this.api.platformAccessory(
+                                    displayName,
+                                    airsideFanUuid
+                                );
+                            airsideFanAccessory.context.ssid = info.ssid;
+                            airsideFanAccessory.context.hostname = hostname;
+                            this.api.registerPlatformAccessories(
+                                PLUGIN_NAME,
+                                PLATFORM_NAME,
+                                [airsideFanAccessory]
+                            );
+                        }
+
+                        const airsideFanSwitch = new AirsideFanSwitchAccessory(
+                            this,
+                            airsideFanAccessory,
+                            airbase
+                        );
+                        updateManager.registerAccessory(airsideFanSwitch);
                     }
 
                     // Create Dry Mode switch if supported
