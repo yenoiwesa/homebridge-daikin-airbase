@@ -55,18 +55,15 @@ export class AirsideFanSwitchAccessory {
     }
 
     private calculateOn(controlInfo: ControlInfo): boolean {
-        const { power, fanAirside } = controlInfo;
-        return (
-            power === DaikinAircon.Power.ON &&
-            fanAirside === DaikinAircon.FanAirside.ON
-        );
+        const { fanAirside } = controlInfo;
+        return fanAirside === DaikinAircon.FanAirside.ON;
     }
 
     async setOn(value: CharacteristicValue) {
         if (value === true) {
             await this.airbase.setControlInfo({
-                power: DaikinAircon.Power.ON,
                 fanAirside: DaikinAircon.FanAirside.ON,
+                fanAuto: DaikinAircon.FanAuto.OFF,
             });
         } else {
             await this.airbase.setControlInfo({

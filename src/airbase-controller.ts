@@ -52,6 +52,13 @@ export default class DaikinAircon {
         };
     }
 
+    static get FanAuto() {
+        return {
+            OFF: 0,
+            ON: 1,
+        };
+    }
+
     private log: Logging;
     private hostname: string;
     private info: AirbaseInfo | null = null;
