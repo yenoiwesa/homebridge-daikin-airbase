@@ -1,12 +1,13 @@
 {
     "name": "homebridge-daikin-airbase",
-    "version": "4.0.2",
+    "version": "4.0.3",
     "description": "A Homebridge plugin providing support for the Daikin Airbase.",
     "main": "dist/index.js",
     "files": [
         "/index.js",
         "/dist",
-        "/config.schema.json"
+        "/config.schema.json",
+        "/CHANGELOG.md"
     ],
     "scripts": {
         "build": "rimraf ./dist && tsc",

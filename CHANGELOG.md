@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [4.0.2] - 12/11/2025
+## [4.0.3] - 12/11/2025
 
 ### ⚠️ BREAKING CHANGES
 
