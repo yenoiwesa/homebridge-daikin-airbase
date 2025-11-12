@@ -84,12 +84,11 @@ export class FanAccessory {
         const power =
             value === true ? DaikinAircon.Power.ON : DaikinAircon.Power.OFF;
 
-        // When turning on the fan accessory, disable airside fan and fan auto
+        // When turning on the fan accessory, disable airside fan
         if (value === true) {
             await this.airbase.setControlInfo({
                 power,
                 fanAirside: DaikinAircon.FanAirside.OFF,
-                fanAuto: DaikinAircon.FanAuto.OFF,
             });
         } else {
             await this.airbase.setControlInfo({ power });
@@ -146,11 +145,10 @@ export class FanAccessory {
                 break;
         }
 
-        // When adjusting fan speed, disable airside fan and fan auto
+        // When adjusting fan speed, disable airside fan
         await this.airbase.setControlInfo({
             fanRate,
             fanAirside: DaikinAircon.FanAirside.OFF,
-            fanAuto: DaikinAircon.FanAuto.OFF,
         });
     }
 }
