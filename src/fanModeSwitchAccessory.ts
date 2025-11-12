@@ -15,20 +15,10 @@ export class FanModeSwitchAccessory {
     ) {
         this.airbase = airbase;
 
-        // Get info (throws if not initialized)
-        const info = airbase.getInfo();
-
         // Get or create Switch service for Fan Mode
-        const uuid = this.platform.api.hap.uuid.generate(
-            `${info.ssid}:fan-mode-switch-service`
-        );
         this.switchService =
             this.accessory.getService(this.platform.Service.Switch) ||
-            this.accessory.addService(
-                this.platform.Service.Switch,
-                'Fan Mode',
-                uuid
-            );
+            this.accessory.addService(this.platform.Service.Switch, 'Fan Mode');
 
         this.switchService.setCharacteristic(
             this.platform.Characteristic.Name,

@@ -18,20 +18,10 @@ export class ZoneSwitchAccessory {
         this.airbase = airbase;
         this.zoneName = zoneName;
 
-        // Get info (throws if not initialized)
-        const info = airbase.getInfo();
-
         // Get or create Switch service for Zone
-        const uuid = this.platform.api.hap.uuid.generate(
-            `${info.ssid}:zone-${zoneName}-service`
-        );
         this.switchService =
             this.accessory.getService(this.platform.Service.Switch) ||
-            this.accessory.addService(
-                this.platform.Service.Switch,
-                zoneName,
-                uuid
-            );
+            this.accessory.addService(this.platform.Service.Switch, zoneName);
 
         this.switchService.setCharacteristic(
             this.platform.Characteristic.Name,

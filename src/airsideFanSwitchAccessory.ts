@@ -15,19 +15,12 @@ export class AirsideFanSwitchAccessory {
     ) {
         this.airbase = airbase;
 
-        // Get info (throws if not initialized)
-        const info = airbase.getInfo();
-
         // Get or create Switch service for Airside Fan
-        const uuid = this.platform.api.hap.uuid.generate(
-            `${info.ssid}:airside-fan-switch-service`
-        );
         this.switchService =
             this.accessory.getService(this.platform.Service.Switch) ||
             this.accessory.addService(
                 this.platform.Service.Switch,
-                'Airside Fan',
-                uuid
+                'Airside Fan'
             );
 
         this.switchService.setCharacteristic(

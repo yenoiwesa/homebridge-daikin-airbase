@@ -27,16 +27,9 @@ export class FanAccessory {
         this.fanSpeedSteps = parseFloat((100 / info.fanRateSteps).toFixed(2));
 
         // Get or create FanV2 service
-        const uuid = this.platform.api.hap.uuid.generate(
-            `${info.ssid}:fan-service`
-        );
         this.fanService =
             this.accessory.getService(this.platform.Service.Fanv2) ||
-            this.accessory.addService(
-                this.platform.Service.Fanv2,
-                'Fan Speed',
-                uuid
-            );
+            this.accessory.addService(this.platform.Service.Fanv2, 'Fan Speed');
 
         this.fanService.setCharacteristic(
             this.platform.Characteristic.Name,
