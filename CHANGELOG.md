@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.4] - 13/11/2025
+
+### Changed
+
+-   Switch services are no longer registered with a UUID as sub-type since each switch is now its own accessory.
+
 ## [4.0.3] - 12/11/2025
 
 ### ⚠️ BREAKING CHANGES
