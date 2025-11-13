@@ -44,15 +44,11 @@ export class HeaterCoolerAccessory {
             );
 
         // Get or create HeaterCooler service
-        const heaterCoolerUUID = this.platform.api.hap.uuid.generate(
-            `${info.ssid}:heater-cooler-service`
-        );
         this.heaterCoolerService =
             this.accessory.getService(this.platform.Service.HeaterCooler) ||
             this.accessory.addService(
                 this.platform.Service.HeaterCooler,
-                info.name,
-                heaterCoolerUUID
+                info.name
             );
 
         this.heaterCoolerService.setCharacteristic(
